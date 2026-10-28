@@ -1,3 +1,5 @@
+// Runtime values: heap objects (strings, scopes, functions, closures, upvalues), the string
+// hash table, truthiness, equality, and how values are printed.
 #include "value.h"
 
 #include <math.h>
@@ -214,6 +216,9 @@ bool values_equal(Value a, Value b) {
 int format_number(char* buf, size_t cap, double d) {
     if (isnan(d)) return snprintf(buf, cap, "nan");
     if (isinf(d)) return snprintf(buf, cap, "%s", d < 0 ? "-inf" : "inf");
+    // Whole numbers up to 2^53 are stored exactly in a double, so print every digit
+    // (9007199254740992, not 9.00719925474099e+15). "%.15g" covers everything else.
+    if (d == floor(d) && fabs(d) <= 9007199254740992.0) return snprintf(buf, cap, "%.0f", d == 0 ? 0.0 : d);
     return snprintf(buf, cap, "%.15g", d);
 }
 

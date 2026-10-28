@@ -5,4 +5,5 @@
 
 #include "token.h"
 
+// Scans `length` bytes of `source` and returns the tokens; stores how many (including TOK_EOF) in *count.
 Token* lex(const char* source, size_t length, int* count);

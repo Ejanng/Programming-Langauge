@@ -12,8 +12,9 @@ for mode in tree vm; do
   [ "$mode" == "vm" ] && flag="--vm"
   for src in examples/*.rene; do
     expected="${src%.rene}.expected"
-    actual="$("$bin" $flag "$src" 2>&1)"
-    if [ "$actual" == "$(cat "$expected")" ]; then
+    # tr strips carriage returns, so Windows (CRLF) output compares equal to the LF .expected files.
+    actual="$("$bin" $flag "$src" 2>&1 | tr -d '\r')"
+    if [ "$actual" == "$(tr -d '\r' < "$expected")" ]; then
       pass=$((pass + 1))
       echo "PASS [$mode] $src"
     else

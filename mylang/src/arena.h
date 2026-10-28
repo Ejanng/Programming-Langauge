@@ -14,13 +14,15 @@ char* arena_strndup(const char* text, size_t length);
 // has space for one more element, and returns the (possibly moved) array.
 void* arena_array_reserve(void* array, int count, int* cap, size_t elemSize);
 
+// Releases every block at once. Everything the arena handed out becomes invalid.
 void arena_free_all(void);
 
 // A growable list of pointers, used while the parser collects statements, arguments and parameters.
 typedef struct {
-    void** items;
-    int count;
-    int cap;
+    void** items;  // the pointers, in insertion order
+    int count;     // number of pointers stored
+    int cap;       // number of slots allocated in items
 } PtrVec;
 
+// Appends `item`, growing the list (in the arena) when it is full.
 void ptrvec_push(PtrVec* vec, void* item);

@@ -14,8 +14,8 @@ typedef struct Stmt Stmt;
 typedef enum { EXPR_NUMBER, EXPR_STRING, EXPR_BOOL, EXPR_NIL, EXPR_VARIABLE, EXPR_ASSIGN, EXPR_UNARY, EXPR_BINARY, EXPR_LOGICAL, EXPR_CALL } ExprKind;
 
 struct Expr {
-    ExprKind kind;
-    int line;
+    ExprKind kind;      // which kind of expression this node is; decides which fields below are used
+    int line;           // source line, for error messages
     double number;      // EXPR_NUMBER
     bool boolean;       // EXPR_BOOL
     const char* text;   // string literal, or the name for EXPR_VARIABLE and EXPR_ASSIGN
@@ -24,26 +24,26 @@ struct Expr {
     Expr* left;         // unary operand, binary/logical left, assign value, call callee
     Expr* right;        // binary/logical right
     Expr** args;        // call arguments
-    int argCount;
+    int argCount;       // number of entries in args
 };
 
 typedef enum { STMT_EXPRESSION, STMT_PRINT, STMT_LET, STMT_BLOCK, STMT_IF, STMT_WHILE, STMT_FUNCTION, STMT_RETURN } StmtKind;
 
 struct Stmt {
-    StmtKind kind;
-    int line;
+    StmtKind kind;            // which kind of statement this node is; decides which fields below are used
+    int line;                 // source line, for error messages
     const char* name;         // STMT_LET, STMT_FUNCTION
     Expr* expr;               // expression, print, let initializer, if/while condition, return value (may be NULL)
     Stmt** body;              // block statements, function body
-    int bodyCount;
+    int bodyCount;            // number of entries in body
     Stmt* thenBranch;         // if "then" branch, while body
     Stmt* elseBranch;         // if "else" branch (may be NULL)
     const char** params;      // function parameters
-    int paramCount;
+    int paramCount;           // number of entries in params
 };
 
 // A parsed program: the top-level statements, in order.
 typedef struct {
-    Stmt** stmts;
-    int count;
+    Stmt** stmts;  // the statements, in source order
+    int count;     // number of entries in stmts
 } Program;

@@ -1,3 +1,5 @@
+// Stage 2: the recursive descent parser. Each grammar rule in parser.h is one function here,
+// and operator precedence comes from which rule calls which.
 #include "parser.h"
 
 #include <stdbool.h>
@@ -7,9 +9,9 @@
 #include "errors.h"
 
 typedef struct {
-    const Token* tokens;
-    int count;
-    int current;
+    const Token* tokens;  // the token list from the lexer, ending in TOK_EOF
+    int count;            // number of entries in tokens
+    int current;          // index of the next token to consume
 } Parser;
 
 static Stmt* declaration(Parser* p);
@@ -44,9 +46,9 @@ static bool match_any(Parser* p, const TokenType* types, int n) {
 
 _Noreturn static void error_at(const Token* token, const char* message) {
     if (token->type == TOK_EOF) {
-        lang_error(ERR_SYNTAX, token->line, "%s (reached end of file)", message);
+        lang_error_at(ERR_SYNTAX, token->line, (long)token->offset, "%s (reached end of file)", message);
     }
-    lang_error(ERR_SYNTAX, token->line, "%s (found '%s')", message, token->lexeme);
+    lang_error_at(ERR_SYNTAX, token->line, (long)token->offset, "%s (found '%s')", message, token->lexeme);
 }
 
 static const Token* consume(Parser* p, TokenType t, const char* message) {
@@ -293,7 +295,7 @@ static Expr* assignment(Parser* p) {
             a->left = value;
             return a;
         }
-        lang_error(ERR_SYNTAX, equals->line, "Invalid assignment target.");
+        lang_error_at(ERR_SYNTAX, equals->line, (long)equals->offset, "Invalid assignment target.");
     }
     return expr;
 }

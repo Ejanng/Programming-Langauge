@@ -1,0 +1,28 @@
+-- basic operators --
+12
+2
+35
+5
+2
+-- precedence and grouping --
+14
+20
+89
+70
+-- negative numbers --
+-5
+-7
+-12
+-2
+-- large whole numbers stay exact --
+2147483648
+1000000000000
+9007199254740992
+-- division that does not come out even --
+3.5
+0.333333333333333
+-- variables and expressions --
+area = 84
+perimeter = 38
+2^10 = 1024
+3^5 = 243

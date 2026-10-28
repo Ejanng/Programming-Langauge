@@ -19,8 +19,15 @@ add_executable(mylang
   src/vm/chunk.c
   src/vm/compiler.c
   src/vm/vm.c)
-target_link_libraries(mylang PRIVATE m)
-target_compile_options(mylang PRIVATE -Wall -Wextra -Wpedantic)
+if(MSVC)
+  # MSVC: /W3 warnings; silence its "use fopen_s instead of fopen" deprecation warnings.
+  target_compile_options(mylang PRIVATE /W3)
+  target_compile_definitions(mylang PRIVATE _CRT_SECURE_NO_WARNINGS)
+else()
+  # GCC and Clang: the math functions (fmod) live in libm.
+  target_link_libraries(mylang PRIVATE m)
+  target_compile_options(mylang PRIVATE -Wall -Wextra -Wpedantic)
+endif()
 
 enable_testing()
-add_test(NAME examples COMMAND ${CMAKE_SOURCE_DIR}/tests/run_tests.sh ${CMAKE_BINARY_DIR}/mylang)
+add_test(NAME examples COMMAND bash ${CMAKE_SOURCE_DIR}/tests/run_tests.sh $<TARGET_FILE:mylang>)

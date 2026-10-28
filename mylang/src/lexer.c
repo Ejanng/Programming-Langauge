@@ -1,3 +1,5 @@
+// Stage 1: the lexer. Scans the source character by character and produces tokens:
+// punctuation, operators, numbers, strings, identifiers and keywords. Comments and whitespace are skipped.
 #include "lexer.h"
 
 #include <ctype.h>
@@ -9,14 +11,14 @@
 #include "errors.h"
 
 typedef struct {
-    const char* src;
-    size_t len;
-    size_t start;
-    size_t cur;
-    int line;
-    Token* tokens;
-    int count;
-    int cap;
+    const char* src;  // the source text being scanned
+    size_t len;       // length of src
+    size_t start;     // index where the current token begins
+    size_t cur;       // index of the next character to read
+    int line;         // current line number, for tokens and errors
+    Token* tokens;    // tokens produced so far
+    int count;        // number of entries in tokens
+    int cap;          // slots allocated in tokens
 } Lexer;
 
 static bool at_end(const Lexer* lx) { return lx->cur >= lx->len; }
@@ -34,6 +36,7 @@ static bool is_digit(char c) { return isdigit((unsigned char)c) != 0; }
 static bool is_alpha(char c) { return isalpha((unsigned char)c) != 0 || c == '_'; }
 
 static void push_token(Lexer* lx, Token t) {
+    t.offset = lx->start;
     lx->tokens = arena_array_reserve(lx->tokens, lx->count, &lx->cap, sizeof(Token));
     lx->tokens[lx->count++] = t;
 }
@@ -63,7 +66,7 @@ static void string(Lexer* lx) {
     }
     if (at_end(lx)) {
         free(value);
-        lang_error(ERR_SYNTAX, startLine, "Unterminated string.");
+        lang_error_at(ERR_SYNTAX, startLine, (long)lx->start, "Unterminated string.");
     }
     advance(lx);  // closing quote
     push_token(lx, (Token){TOK_STRING, arena_strndup(value, n), n, 0, startLine});
@@ -137,17 +140,21 @@ static void scan_token(Lexer* lx) {
             } else if (is_alpha(c)) {
                 identifier(lx);
             } else {
-                lang_error(ERR_SYNTAX, lx->line, "Unexpected character '%c'.", c);
+                lang_error_at(ERR_SYNTAX, lx->line, (long)lx->start, "Unexpected character '%c'.", c);
             }
     }
 }
 
 Token* lex(const char* source, size_t length, int* count) {
     Lexer lx = {.src = source, .len = length, .line = 1};
+    // Skip a UTF-8 byte order mark. Windows editors such as Notepad (and PowerShell pipes) put
+    // one at the start of text, and it is not part of the program.
+    if (length >= 3 && memcmp(source, "\xEF\xBB\xBF", 3) == 0) lx.cur = 3;
     while (!at_end(&lx)) {
         lx.start = lx.cur;
         scan_token(&lx);
     }
+    lx.start = lx.cur;  // the end-of-file token sits just past the last character
     push_token(&lx, (Token){TOK_EOF, "", 0, 0, lx.line});
     *count = lx.count;
     return lx.tokens;

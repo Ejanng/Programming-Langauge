@@ -33,34 +33,35 @@ typedef enum {
     OP_RETURN,         // pop the result, drop the frame, push the result for the caller
 } Op;
 
+// The readable name of an opcode, as the --dump listing prints it (OP_GET_LOCAL -> "GetLocal").
 const char* op_name(Op op);
 
 typedef struct {
-    Op op;
-    int operand;
-    int line;
+    Op op;        // what to do
+    int operand;  // its argument; the meaning depends on op (see the Op list above)
+    int line;     // source line it was compiled from, for runtime error messages
 } Instr;
 
 // Where a closure finds each variable it captures when it is created:
 // a local slot of the enclosing function, or one of the enclosing closure's own upvalues.
 typedef struct {
-    bool isLocal;
-    int index;
+    bool isLocal;  // true: a local slot of the enclosing function; false: one of its upvalues
+    int index;     // that slot number or upvalue index
 } UpvalueRef;
 
 // A compiled function ("prototype"). Closures created at run time share one Proto.
 // Protos live in the arena, like the AST they were compiled from.
 typedef struct Proto {
-    const char* name;
-    int arity;
-    Instr* code;
-    int codeCount, codeCap;
+    const char* name;        // function name, or "<script>" for the top level
+    int arity;               // number of parameters
+    Instr* code;             // the instructions
+    int codeCount, codeCap;  // instructions used, and slots allocated
     Value* constants;  // numbers, strings, and global names
-    int constCount, constCap;
+    int constCount, constCap;        // constants used, and slots allocated
     struct Proto** functions;  // functions declared directly inside this one
-    int functionCount, functionCap;
-    UpvalueRef* upvalues;
-    int upvalueCount, upvalueCap;
+    int functionCount, functionCap;  // nested functions, and slots allocated
+    UpvalueRef* upvalues;            // where each captured variable comes from when a closure is made
+    int upvalueCount, upvalueCap;    // captured variables, and slots allocated
 } Proto;
 
 // Prints a readable listing of a function and every function nested inside it.

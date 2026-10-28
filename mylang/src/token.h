@@ -16,9 +16,10 @@ typedef enum {
 } TokenType;
 
 typedef struct {
-    TokenType type;
+    TokenType type;      // what kind of token this is
     const char* lexeme;  // '\0'-terminated source text; for TOK_STRING, the text without quotes
     size_t length;       // length of lexeme (a string literal may contain '\0')
     double number;       // value of a TOK_NUMBER token
-    int line;
+    int line;            // source line the token starts on, for error messages
+    size_t offset;       // byte offset in the source where the token starts, so errors can point at it
 } Token;

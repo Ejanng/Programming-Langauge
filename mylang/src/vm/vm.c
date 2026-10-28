@@ -1,3 +1,5 @@
+// Bytecode backend, part 3: the stack-based virtual machine (--vm). It runs the lexer, parser
+// and compiler, then executes the instructions one at a time. See vm.h.
 #include "vm.h"
 
 #include <math.h>
@@ -87,7 +89,7 @@ static void call_value(VM* vm, int argc, int line) {
     if (!is_obj_type(callee, OBJ_CLOSURE)) lang_error(ERR_RUNTIME, line, "Can only call functions.");
     ObjClosure* closure = (ObjClosure*)callee.as.obj;
     if (argc != closure->proto->arity) {
-        lang_error(ERR_RUNTIME, line, "Expected %d arguments but got %d.", closure->proto->arity, argc);
+        lang_error(ERR_RUNTIME, line, "Expected %d argument%s but got %d.", closure->proto->arity, closure->proto->arity == 1 ? "" : "s", argc);
     }
     if (vm->frameCount > MAX_CALL_DEPTH) lang_error(ERR_RUNTIME, line, "Stack overflow: too many nested calls.");
     push_frame(vm, closure, calleeSlot);

@@ -1,3 +1,5 @@
+// Stage 3 (default backend): the tree-walking interpreter. It runs the lexer and parser, then
+// evaluates the AST node by node, keeping variables in a chain of scopes (ObjEnv).
 #include "interpreter.h"
 
 #include <math.h>
@@ -122,7 +124,12 @@ static Value eval_binary(Interpreter* in, const Expr* e) {
 
 static Value eval_call(Interpreter* in, const Expr* e) {
     Value callee = evaluate(in, e->left);
-    Value args[e->argCount > 0 ? e->argCount : 1];
+    // Most calls pass a few arguments, so they fit in a small buffer on the C stack. Longer argument
+    // lists (the parser allows up to 255) go to the heap. A variable-length array would be simpler,
+    // but MSVC does not support them.
+    Value small[8];
+    Value* args = e->argCount <= 8 ? small : malloc(sizeof(Value) * (size_t)e->argCount);
+    if (!args) lang_error(ERR_RUNTIME, e->line, "Out of memory.");
     for (int i = 0; i < e->argCount; i++) args[i] = evaluate(in, e->args[i]);
 
     if (!is_obj_type(callee, OBJ_FUNCTION)) lang_error(ERR_RUNTIME, e->line, "Can only call functions.");
@@ -130,12 +137,13 @@ static Value eval_call(Interpreter* in, const Expr* e) {
     const Stmt* decl = fn->decl;
 
     if (e->argCount != decl->paramCount) {
-        lang_error(ERR_RUNTIME, e->line, "Expected %d arguments but got %d.", decl->paramCount, e->argCount);
+        lang_error(ERR_RUNTIME, e->line, "Expected %d argument%s but got %d.", decl->paramCount, decl->paramCount == 1 ? "" : "s", e->argCount);
     }
     if (in->callDepth >= MAX_CALL_DEPTH) lang_error(ERR_RUNTIME, e->line, "Stack overflow: too many nested calls.");
 
     ObjEnv* scope = env_new(fn->closure);
     for (int i = 0; i < e->argCount; i++) env_define(scope, decl->params[i], args[i]);
+    if (args != small) free(args);
 
     in->callDepth++;
     in->returnValue = nil_val();  // functions without a return give nil

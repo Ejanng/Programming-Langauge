@@ -1,8 +1,38 @@
 # mylang
 
-A small programming language written in C11, with variables, functions, closures, `if`/`while`, strings and numbers. It has two backends that share one front end: a tree-walking interpreter (the default) and a bytecode compiler plus stack-based virtual machine (`--vm`). Every source file is walked through in [docs/code-guide.md](docs/code-guide.md), and the backend is explained in [docs/backend.md](docs/backend.md). Use it as the base for your own language: rename it, change the syntax, and swap pieces out.
+A small programming language written in C11, with integer and decimal arithmetic, variables, functions, closures, `if`/`while`, and strings. It has two backends that share one front end: a tree-walking interpreter (the default) and a bytecode compiler plus stack-based virtual machine (`--vm`).
+
+Documentation:
+
+- [docs/code-guide.md](docs/code-guide.md) walks through every source file.
+- [docs/backend.md](docs/backend.md) explains the bytecode compiler and VM.
+- [docs/evaluation.md](docs/evaluation.md) evaluates the language against the readability, writability, reliability and cost criteria.
+- [docs/rubric.md](docs/rubric.md) goes through the grading rubric row by row, with a presentation demo script and likely questions.
+
+## Course project
+
+CMPSC 132: Programming Languages, 1st semester, A.Y. 2025-2026, Final Project.
+
+**Group members:**
+
+- _Name 1_
+- _Name 2_
+- _Name 3_
+
+How the project meets each requirement in the guidelines:
+
+| Requirement | Where it is met |
+|---|---|
+| Simple arithmetic on (at least) integer values | `+ - * / %`, parentheses and unary `-` with the usual precedence; whole numbers up to 2^53 are exact. See `examples/arithmetic.rene`. |
+| Handles errors such as incorrect format | Lexer, parser and runtime errors all print `[line N] Kind error: message` and never crash. See `examples/error_syntax.rene`, `examples/error_runtime.rene`, and the error table in [docs/evaluation.md](docs/evaluation.md#exception-handling). |
+| Presents correct output | `tests/run_tests.sh` checks every example's output against its `.expected` file on both backends. |
+| Follows the PL evaluation criteria | [docs/evaluation.md](docs/evaluation.md) |
+| Proper documentation of the source code | Every source file starts with a comment saying what it does, every struct field is described, and [docs/code-guide.md](docs/code-guide.md) explains each file. |
+| Runtime: executes without errors, clear prompts | `mylang --help` explains the options; the REPL shows a banner, a `mylang>` prompt and a `help` command. Errors show the source line with a `^` under the problem. |
 
 ## Build and run
+
+With GCC or Clang (Linux, macOS, or MinGW/MSYS2 on Windows):
 
 ```
 gcc -std=c11 -O2 -Wall -Wextra src/*.c src/vm/*.c -lm -o mylang
@@ -10,10 +40,47 @@ gcc -std=c11 -O2 -Wall -Wextra src/*.c src/vm/*.c -lm -o mylang
 ./mylang --vm examples/hello.rene    # run it on the bytecode VM
 ./mylang --dump examples/hello.rene  # show the compiled bytecode, then run it on the VM
 ./mylang                             # start the REPL (add --vm to use the VM)
+./mylang --help                      # list the options
 tests/run_tests.sh                   # run every example on both backends and compare with its .expected file
 ```
 
-CMake also works: `cmake -B build && cmake --build build`.
+With CMake, on any platform including Visual Studio on Windows:
+
+```
+cmake -B build
+cmake --build build --config Release
+build/Release/mylang.exe examples/arithmetic.rene   # Visual Studio puts the program here
+build/mylang examples/arithmetic.rene               # other generators put it here
+ctest --test-dir build -C Release                    # runs tests/run_tests.sh (needs bash, e.g. Git Bash)
+```
+
+Directly with Microsoft Visual C++, from a "Developer Command Prompt for VS":
+
+```
+cl /std:c11 /O2 /D_CRT_SECURE_NO_WARNINGS src\*.c src\vm\*.c /Fe:mylang.exe
+mylang.exe examples\arithmetic.rene
+```
+
+## A short session
+
+```
+$ ./mylang
+mylang 1.0 - interactive mode (tree-walking interpreter)
+Type 'help' for examples, 'exit' to quit.
+
+mylang> print 2 + 3 * 4
+14
+mylang> let n = 7
+mylang> print n * n - 1
+48
+mylang> print (3 + * 4
+[line 1] Syntax error: Expect expression. (found '*')
+    1 | print (3 + * 4;
+      |            ^
+mylang> print 10 / 0
+[line 1] Runtime error: Division by zero.
+mylang> exit
+```
 
 ## The language
 
@@ -50,7 +117,13 @@ Values: numbers, strings, `true`/`false`, `nil`, functions. Operators: `+ - * / 
 | VM | `src/vm/vm.*` | runs bytecode on a value stack with call frames (`--vm` backend) |
 | Entry point | `src/main.c` | file runner and REPL |
 
-Errors carry a line number: `[line 3] Runtime error: Undefined variable 'missing'.`
+Errors carry a line number and show the source line. Syntax errors also put a `^` under the exact token:
+
+```
+[line 4] Syntax error: Expect expression. (found '*')
+    4 | print (3 + * 4;
+      |            ^
+```
 
 ## Memory model
 

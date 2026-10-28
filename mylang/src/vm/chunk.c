@@ -1,3 +1,4 @@
+// Bytecode helpers: opcode names and the disassembler used by --dump.
 #include "chunk.h"
 
 const char* op_name(Op op) {

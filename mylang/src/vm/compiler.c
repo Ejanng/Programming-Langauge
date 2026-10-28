@@ -1,3 +1,5 @@
+// Bytecode backend, part 2: compiles the AST into instructions for the VM, resolving every
+// variable to a local slot, an upvalue, or a global name. See compiler.h.
 #include "compiler.h"
 
 #include <string.h>
@@ -6,18 +8,18 @@
 #include "../errors.h"
 
 typedef struct {
-    const char* name;
-    int depth;
+    const char* name;  // the variable name
+    int depth;         // block nesting depth it was declared at, so it is popped when that block ends
     bool captured;  // an inner closure refers to it, so it must be moved off the stack when it ends
 } Local;
 
 // Compiler state for one function being compiled. They form a chain through `enclosing`.
 typedef struct FunctionState {
-    struct FunctionState* enclosing;
-    Proto* proto;
-    Local* locals;
-    int localCount, localCap;
-    int scopeDepth;
+    struct FunctionState* enclosing;  // the function this one is nested in; NULL for the top-level script
+    Proto* proto;                     // the compiled function being filled in
+    Local* locals;                    // locals in scope, in stack-slot order (slot 0 is the callee)
+    int localCount, localCap;         // locals in scope, and slots allocated
+    int scopeDepth;                   // current block nesting depth (0 = top level of the function body)
 } FunctionState;
 
 static FunctionState* current = NULL;

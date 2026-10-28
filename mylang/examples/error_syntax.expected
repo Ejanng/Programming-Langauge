@@ -1,0 +1,3 @@
+[line 4] Syntax error: Expect expression. (found '*')
+    4 | print (3 + * 4;
+      |            ^

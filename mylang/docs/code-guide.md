@@ -192,7 +192,8 @@ C has no `try/catch`. This project uses **`setjmp`/`longjmp`** to get the same e
 
 - A phase that can fail calls `setjmp(g_err.env)`. This marks "if something goes wrong, jump back here". It returns 0 normally.
 - Anywhere deep in the code, `lang_error(kind, line, "message...")` fills in the global `g_err` (kind, line, message) and calls `longjmp`. Execution teleports back to the `setjmp` call, which now returns non-zero.
-- The code at the `setjmp` site then calls `report_error()` and returns an exit code.
+- The lexer and parser use `lang_error_at(kind, line, offset, ...)` instead, which also records the byte offset of the bad character or token (every `Token` stores its `offset`).
+- The code at the `setjmp` site then calls `report_error()` and returns an exit code. `report_error()` prints `[line N] Kind error: message`, then the source line from the text `main.c` registered with `error_set_source()`, then a `^` under the offset if there is one. In the REPL, runtime errors skip the source line, because the error may be inside a function typed on an earlier line.
 
 There are three kinds of error:
 - `ERR_SYNTAX`: from the lexer/parser
@@ -236,7 +237,7 @@ Numbers, booleans and nil live directly inside the `Value`. Anything bigger (str
 - **Scopes** (`ObjEnv`, tree-walker only): a table of variables plus a `parent` pointer. Looking up a variable checks this scope, then the parent, and so on up the chain.
 - **Functions** (`ObjFunction`, tree-walker): a pointer to the function's AST node, plus the scope it was defined in. Remembering that scope is exactly what makes a **closure** work.
 - **Closures** (`ObjClosure`) and **upvalues** (`ObjUpvalue`) (VM): see section 6.
-- **Operations:** `is_truthy` (only nil and false are falsy), `values_equal`, and `value_to_string` (how `print` shows a value). `format_number` prints whole numbers without a decimal point (`5`, not `5.000000`).
+- **Operations:** `is_truthy` (only nil and false are falsy), `values_equal`, and `value_to_string` (how `print` shows a value). `format_number` prints whole numbers without a decimal point (`5`, not `5.000000`), and prints every digit of whole numbers up to 2^53, the largest range a double stores exactly (`9007199254740992`, not `9.00719925474099e+15`).
 
 **Scope lifetime in the tree-walker (`env_new` / `env_release` / `env_capture`)**
 This is the trickiest part of `value.c`. Each function call or block creates a scope. Most scopes die when the call ends, so freeing them right away keeps memory use low (this matters for loops and recursion). But if a closure was created inside, the scope must **stay alive**.
@@ -264,7 +265,7 @@ Each is a big `switch` on the node's `kind`.
 - `EXPR_ASSIGN`: evaluate the right side, then update the existing variable.
 - `EXPR_LOGICAL` (`and`/`or`): **short-circuits**. For `a or b`, if `a` is truthy it returns `a` without ever evaluating `b`. It returns the actual value, not a boolean, so `nil or "default"` gives `"default"`.
 - `eval_binary`: evaluates both sides, then does the operation. `==` works on any values. `+` handles numbers or string joining. Everything else requires numbers. Division and modulo by zero are errors.
-- `eval_call`: the most involved. Steps: evaluate the callee, evaluate the arguments, check it is a function and the argument count matches, check call depth (max 1000, to give a clean "Stack overflow" error instead of crashing C), create a new scope whose **parent is the function's saved closure scope** (not the caller's scope, which gives lexical scoping), bind parameters, run the body, and pick up the return value.
+- `eval_call`: the most involved. Steps: evaluate the callee, evaluate the arguments (into an 8-slot buffer on the C stack, or a heap array for longer argument lists, because MSVC has no variable-length arrays), check it is a function and the argument count matches, check call depth (max 1000, to give a clean "Stack overflow" error instead of crashing C), create a new scope whose **parent is the function's saved closure scope** (not the caller's scope, which gives lexical scoping), bind parameters, run the body, and pick up the return value.
 
 **Statements (`execute`)**
 - `print`: converts to string, writes it, adds a newline.
@@ -403,12 +404,14 @@ fn counter() {
 - Parses command-line flags: `--vm` (use the bytecode VM), `--dump` (print bytecode, implies `--vm`), and a file path. Anything else prints the usage message and exits with code 64.
 - A `Runner` struct bundles both backends. `run_source()` picks the interpreter or the VM based on the flag.
 - `run_file()` reads the entire file into a buffer and runs it. **The file extension is never checked**, so `.rene` is just a convention.
-- `repl()` is an interactive loop: read a line, trim it, run it. It auto-adds a `;` if you forget one, so `print 1 + 2` works. Errors are printed but the session continues. `exit` or `quit` ends it.
+- `repl()` is an interactive loop: show the `mylang>` prompt, read a line, trim it, run it. It auto-adds a `;` if you forget one, so `print 1 + 2` works. Errors are printed but the session continues. `help` prints a short language reference; `exit`, `quit` or end of input ends it.
+- `read_line()` reads one line of any length. It replaces POSIX `getline()`, which Windows does not have.
+- `--help` prints the usage text; an unknown option prints which argument was wrong, then the usage.
 - Cleanup at the end: `objects_free_all()` and `arena_free_all()`.
 
 ### `CMakeLists.txt`
 
-Defines the executable from all the `.c` files (C11, with warnings). Build with `cmake -B build && cmake --build build`, or directly with:
+Defines the executable from all the `.c` files (C11, with warnings). GCC and Clang get `-Wall -Wextra -Wpedantic` and the math library; MSVC gets `/W3`, since it rejects the GCC flags. Build with `cmake -B build && cmake --build build`, or directly with:
 
 ```bash
 gcc -std=c11 -O2 -Wall -Wextra src/*.c src/vm/*.c -lm -o mylang
@@ -418,18 +421,20 @@ gcc -std=c11 -O2 -Wall -Wextra src/*.c src/vm/*.c -lm -o mylang
 
 ### `tests/run_tests.sh`
 
-For each backend (tree-walker, then VM), it runs every `examples/*.rene`, captures stdout+stderr, and compares it to the matching `.expected` file. It prints PASS/FAIL per test and a total. With 6 examples × 2 backends, you see `12 passed`.
+For each backend (tree-walker, then VM), it runs every `examples/*.rene`, captures stdout+stderr, and compares it to the matching `.expected` file, ignoring carriage returns so Windows output matches too. It prints PASS/FAIL per test and a total. With 8 examples × 2 backends, you see `16 passed`.
 
 ### `examples/`
 
 | File | What it tests |
 |---|---|
 | `hello.rene` | Basic printing |
+| `arithmetic.rene` | Integer arithmetic: operators, precedence, negatives, large numbers |
 | `fib.rene` | Recursion |
 | `logic.rene` | `and` / `or` / truthiness |
 | `closures.rene` | Functions capturing variables |
 | `scopes.rene` | Nested scopes, shadowing, deep closures |
 | `error_runtime.rene` | A runtime error and its message |
+| `error_syntax.rene` | A badly formatted expression, rejected before anything runs |
 
 ---
 

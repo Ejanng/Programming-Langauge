@@ -1,3 +1,5 @@
+// Arena allocator: hands out memory from large blocks and frees all of it at once at exit.
+// The interface and the reasoning behind it are in arena.h.
 #include "arena.h"
 
 #include <stdio.h>
@@ -6,11 +8,14 @@
 
 #define BLOCK_SIZE (64 * 1024)
 
+// One chunk of arena memory. The usable bytes follow the header directly.
 typedef struct Block {
-    struct Block* next;
-    size_t used;
-    size_t size;
-    max_align_t align;  // forces the data that follows to be suitably aligned
+    struct Block* next;  // the previously allocated block (blocks form a singly linked list)
+    size_t used;         // bytes of this block already handed out
+    size_t size;         // bytes of usable space in this block
+    // Forces the data that follows to be aligned for any type. A union is used instead of C11's
+    // max_align_t because MSVC does not define max_align_t when compiling C.
+    union { long double ld; long long ll; void* p; void (*fn)(void); } align;
 } Block;
 
 static Block* blocks = NULL;
