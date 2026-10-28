@@ -4,6 +4,7 @@ A small programming language written in C11, with integer and decimal arithmetic
 
 Documentation:
 
+- **[DOCUMENTATION.md](DOCUMENTATION.md): the main project documentation. Start here.** It covers how to use the language, error handling, sample outputs, how it works inside, and every data structure and its variables, in simple terms.
 - [docs/code-guide.md](docs/code-guide.md) walks through every source file.
 - [docs/backend.md](docs/backend.md) explains the bytecode compiler and VM.
 - [docs/evaluation.md](docs/evaluation.md) evaluates the language against the readability, writability, reliability and cost criteria.
