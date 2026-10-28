@@ -22,10 +22,13 @@ namespace rene {
 // A scope: maps names to values and links to its enclosing scope.
 class Environment {
 public:
+    // `parent` is the enclosing scope (null for the global scope).
     explicit Environment(std::shared_ptr<Environment> parent = nullptr) : parent_(std::move(parent)) {}
 
+    // Creates a variable in this scope (used by let, parameters and fn).
     void define(const std::string& name, Value value) { values_[name] = std::move(value); }
 
+    // Looks a variable up in this scope, then in each enclosing scope.
     Value get(const std::string& name, int line) const {
         for (const Environment* env = this; env; env = env->parent_.get()) {
             auto it = env->values_.find(name);
@@ -34,6 +37,8 @@ public:
         throw ReneError("RuntimeError", line, "undefined variable '" + name + "'");
     }
 
+    // Changes an existing variable, searching outward like get. Assigning to
+    // a name that was never declared is an error.
     void assign(const std::string& name, Value value, int line) {
         for (Environment* env = this; env; env = env->parent_.get()) {
             auto it = env->values_.find(name);
@@ -47,24 +52,36 @@ public:
     }
 
 private:
+    // Variables declared in this scope.
     std::unordered_map<std::string, Value> values_;
+    // Enclosing scope, or null for the global scope.
     std::shared_ptr<Environment> parent_;
 };
 
 // ------------------------------------------------------------ Control signals
 
+// return, break and continue are implemented as C++ exceptions: they jump
+// out of nested execute() calls until the matching function or loop catches
+// them. ReturnSignal carries the returned value.
 struct ReturnSignal { Value value; };
 struct BreakSignal {};
 struct ContinueSignal {};
 
 // ------------------------------------------------------------------ Functions
 
+// A built-in function written in C++ (len, push, range, ...).
 struct NativeFunction : Callable {
+    // Type of the C++ code behind a built-in: takes the arguments and the
+    // call's line number, returns the result.
     using Fn = std::function<Value(std::vector<Value>&, int line)>;
 
+    // Name the function is called by in Rene.
     std::string name_;
+    // Minimum number of arguments.
     int min_;
+    // Maximum number of arguments.
     int max_;
+    // The C++ implementation.
     Fn fn_;
 
     NativeFunction(std::string name, int min, int max, Fn fn)
@@ -76,8 +93,12 @@ struct NativeFunction : Callable {
     Value call(Interpreter&, std::vector<Value>& args, int line) override { return fn_(args, line); }
 };
 
+// A function written in Rene (with fn).
 struct UserFunction : Callable {
+    // Parameters and body from the syntax tree.
     std::shared_ptr<FunctionStmt> declaration;
+    // Scope the function was created in, so it can still use variables from
+    // there after that scope has ended (closures).
     std::shared_ptr<Environment> closure;
 
     UserFunction(std::shared_ptr<FunctionStmt> decl, std::shared_ptr<Environment> env)
@@ -94,12 +115,16 @@ struct UserFunction : Callable {
 // Tree-walking interpreter: executes the AST directly (no compilation step).
 class Interpreter {
 public:
+    // Creates the global scope and fills it with the built-in functions.
     Interpreter() : globals_(std::make_shared<Environment>()), env_(globals_) { defineBuiltins(); }
 
+    // Runs a parsed program, statement by statement.
     void run(const std::vector<StmtPtr>& program) {
         for (const auto& stmt : program) execute(*stmt);
     }
 
+    // Calls a Rene function: binds arguments to parameters in a new scope, runs
+    // the body and returns the value of its return statement (nil if none).
     Value callUserFunction(const UserFunction& fn, std::vector<Value>& args, int line) {
         if (callDepth_ >= config::MAX_CALL_DEPTH) {
             throw ReneError("RuntimeError", line, "stack overflow (too many nested calls)");
@@ -123,27 +148,35 @@ public:
     }
 
 private:
+    // The global scope, which holds built-ins and top-level variables.
     std::shared_ptr<Environment> globals_;
+    // The scope currently in use; changes as blocks and functions are entered.
     std::shared_ptr<Environment> env_;
+    // Number of function calls in progress, to catch runaway recursion.
     int callDepth_ = 0;
 
     // Restores the previous scope even when a signal or error unwinds the stack.
     struct ScopeGuard {
+        // Interpreter whose scope is restored.
         Interpreter& interp;
+        // Scope to go back to.
         std::shared_ptr<Environment> previous;
         ~ScopeGuard() { interp.env_ = std::move(previous); }
     };
 
+    // Runs statements inside `scope`, then returns to the previous scope.
     void executeBlock(const std::vector<StmtPtr>& statements, std::shared_ptr<Environment> scope) {
         ScopeGuard guard{*this, env_};
         env_ = std::move(scope);
         for (const auto& stmt : statements) execute(*stmt);
     }
 
+    // Stops the program with a RuntimeError.
     [[noreturn]] static void fail(int line, const std::string& message) {
         throw ReneError("RuntimeError", line, message);
     }
 
+    // Returns the value as a number, or reports an error if it is not one.
     static double expectNumber(const Value& v, int line, const std::string& context) {
         if (!isNumber(v)) fail(line, context + " expects a number, got " + typeName(v));
         return std::get<double>(v);
@@ -163,6 +196,7 @@ private:
 
     // ---------------------------------------------------------- statements
 
+    // Runs one statement. Each `if` checks which kind of statement it is.
     void execute(const Stmt& stmt) {
         if (auto s = dynamic_cast<const ExpressionStmt*>(&stmt)) {
             evaluate(*s->expression);
@@ -221,6 +255,8 @@ private:
         fail(stmt.line, "unknown statement");
     }
 
+    // Runs a for-in loop over a list or a string. Each pass gets its own scope
+    // holding the loop variable.
     void executeForIn(const ForInStmt& s) {
         Value iterable = evaluate(*s.iterable);
         std::vector<Value> items;  // snapshot, so mutating the list inside the loop is safe
@@ -246,6 +282,7 @@ private:
 
     // --------------------------------------------------------- expressions
 
+    // Computes the value of one expression.
     Value evaluate(const Expr& expr) {
         if (auto e = dynamic_cast<const LiteralExpr*>(&expr)) return e->value;
         if (auto e = dynamic_cast<const VariableExpr*>(&expr)) return env_->get(e->name, e->line);
@@ -301,6 +338,8 @@ private:
         fail(expr.line, "unknown expression");
     }
 
+    // Evaluates a call: the function, then the arguments, then checks the
+    // argument count before calling.
     Value callExpr(const CallExpr& e) {
         Value callee = evaluate(*e.callee);
         if (!isCallable(callee)) fail(e.line, "can only call functions, got " + typeName(callee));
@@ -319,6 +358,9 @@ private:
         return fn->call(*this, args, e.line);
     }
 
+    // Applies a two-operand operator. == and != work on any values, + also
+    // joins strings and lists, comparisons work on numbers or strings, and the
+    // rest are arithmetic on numbers.
     static Value binary(const Value& left, TokenType op, const Value& right, int line) {
         switch (op) {
             case TokenType::EqualEqual: return left == right;
@@ -363,6 +405,7 @@ private:
         }
     }
 
+    // Turns a three-way comparison result (-1, 0, 1) into true/false for `op`.
     static Value compare(int order, TokenType op) {
         switch (op) {
             case TokenType::Less: return order < 0;
@@ -374,24 +417,30 @@ private:
 
     // ------------------------------------------------------------ builtins
 
+    // Registers a built-in function in the global scope.
     void native(const std::string& name, int min, int max, NativeFunction::Fn fn) {
         globals_->define(name, std::shared_ptr<Callable>(std::make_shared<NativeFunction>(name, min, max, std::move(fn))));
     }
 
+    // Returns the value as a list, or reports an error naming the built-in `fn`.
     static std::shared_ptr<ListObject> expectList(const Value& v, int line, const std::string& fn) {
         if (!isList(v)) fail(line, fn + "() expects a list, got " + typeName(v));
         return std::get<std::shared_ptr<ListObject>>(v);
     }
 
+    // All built-in functions available to Rene programs.
     void defineBuiltins() {
+        // len(x): number of items in a list or characters in a string.
         native("len", 1, 1, [](std::vector<Value>& args, int line) -> Value {
             if (isString(args[0])) return static_cast<double>(std::get<std::string>(args[0]).size());
             return static_cast<double>(expectList(args[0], line, "len")->items.size());
         });
+        // push(list, value): adds value to the end of the list and returns the list.
         native("push", 2, 2, [](std::vector<Value>& args, int line) -> Value {
             expectList(args[0], line, "push")->items.push_back(args[1]);
             return args[0];
         });
+        // pop(list): removes and returns the last item.
         native("pop", 1, 1, [](std::vector<Value>& args, int line) -> Value {
             auto list = expectList(args[0], line, "pop");
             if (list->items.empty()) fail(line, "pop() from an empty list");
@@ -399,8 +448,11 @@ private:
             list->items.pop_back();
             return last;
         });
+        // str(x): converts any value to a string.
         native("str", 1, 1, [](std::vector<Value>& args, int) -> Value { return stringify(args[0]); });
+        // type(x): name of x's type, e.g. "number".
         native("type", 1, 1, [](std::vector<Value>& args, int) -> Value { return typeName(args[0]); });
+        // num(x): converts a string like "42" to a number.
         native("num", 1, 1, [](std::vector<Value>& args, int line) -> Value {
             if (isNumber(args[0])) return args[0];
             if (isString(args[0])) {
@@ -415,6 +467,7 @@ private:
             }
             fail(line, "num() cannot convert " + typeName(args[0]) + " to a number");
         });
+        // range(end) or range(start, end): numbers from start up to end - 1.
         native("range", 1, 2, [](std::vector<Value>& args, int line) -> Value {
             double start = 0, end;
             if (args.size() == 1) {
@@ -427,12 +480,15 @@ private:
             for (double i = start; i < end; ++i) list->items.emplace_back(i);
             return list;
         });
+        // input(prompt): shows the optional prompt and reads one line from the
+        // user (nil at end of input).
         native("input", 0, 1, [](std::vector<Value>& args, int) -> Value {
             if (!args.empty()) std::cout << stringify(args[0]) << std::flush;
             std::string line;
             if (!std::getline(std::cin, line)) return Value{};
             return line;
         });
+        // clock(): seconds since an arbitrary point, for timing code.
         native("clock", 0, 0, [](std::vector<Value>&, int) -> Value {
             using namespace std::chrono;
             return duration<double>(steady_clock::now().time_since_epoch()).count();
@@ -440,6 +496,7 @@ private:
     }
 };
 
+// Defined here because it needs the complete Interpreter class.
 inline Value UserFunction::call(Interpreter& interpreter, std::vector<Value>& args, int line) {
     return interpreter.callUserFunction(*this, args, line);
 }

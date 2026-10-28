@@ -14,6 +14,16 @@ for name in ["Ada", "Linus", "Grace"] {
 }
 ```
 
+Final project for **CMPSC 132: Programming Languages**, 1st semester, A.Y. 2025-2026.
+
+## Group members
+
+| Name                  |
+|-----------------------|
+| Earl Jasper Aquitania |
+| Ma. Nelia Fiesta      |
+| *(add member)*        |
+
 ## Building
 
 You need CMake 3.16+ and a C++17 compiler (MSVC, GCC or Clang).
@@ -170,6 +180,72 @@ Errors report the line number and stop the program:
 | 65        | Syntax error             |
 | 66        | File cannot be opened    |
 | 70        | Runtime error            |
+
+## PL evaluation criteria
+
+How Rene's design meets the four standard criteria for evaluating a
+programming language: readability, writability, reliability and cost.
+
+### Readability
+
+- **Small, simple language.** Rene has 17 keywords, 6 value types and one
+  way to do most things, so there is little to learn before reading a program.
+- **Words instead of symbols.** Logic uses `and`, `or` and `not` instead of
+  `&&`, `||` and `!`, and functions are introduced with `fn`.
+- **Familiar syntax.** Arithmetic follows normal math precedence
+  (`2 + 3 * 4` is `14`), and blocks use `{ }` like C, Java and JavaScript.
+- **Required braces.** `if`, `while` and `for` bodies must be in `{ }`, so
+  it is always clear which statements belong to which block.
+- **Clear truthiness rule.** Only `nil` and `false` are false; `0` and `""`
+  are true, so conditions never depend on hidden conversions.
+
+### Writability
+
+- **Expressive control flow.** `for item in list`, `for ch in "text"` and
+  `for i in range(n)` cover most loops without index bookkeeping.
+- **Functions as values.** Functions can be stored in variables, passed to
+  other functions and returned, and closures capture their scope (see
+  `examples/functions.rene`).
+- **Orthogonality.** The same operators work across types where it makes
+  sense: `+` adds numbers, joins strings and joins lists; `[i]` indexes
+  both lists and strings, and negative indexes count from the end.
+- **Built-in helpers.** `len`, `push`, `pop`, `range`, `str`, `num`, `input`
+  and more handle common tasks.
+- **Interactive REPL.** Running `rene` with no file lets you try code one
+  line at a time.
+
+### Reliability
+
+- **Clear errors.** Every error names its kind and line, e.g.
+  `[line 4] RuntimeError: division by zero`.
+- **Syntax checks before running.** The whole program is parsed first, so
+  mistakes like a missing `;` or `)`, or `break`/`return` in the wrong
+  place, are reported before any code runs.
+- **Variables must be declared.** Assigning to a name without `let` is an
+  error, which catches typos like `conut = 1`.
+- **Type checking at run time.** Operations on the wrong types are rejected
+  instead of producing garbage: `1 + nil`, `-"x"` and `1 < "a"` are all
+  errors.
+- **Safety checks.** Division and modulo by zero, list indexes out of range,
+  calls with the wrong number of arguments and runaway recursion (more than
+  512 nested calls) all stop the program with an error instead of crashing.
+- **Trade-off:** `+` converts a number to text when the other side is a
+  string, so `1 + "a"` gives `"1a"`. This makes building messages easy but
+  means that mistake is not caught.
+
+### Cost
+
+- **Cheap to learn.** The language is small and borrows familiar syntax,
+  so programmers who know C, Java, Python or JavaScript can start quickly.
+- **Cheap to build and run.** The interpreter is about 1,400 lines of
+  standard C++17 with no outside libraries, and builds with any C++17
+  compiler on Windows, Linux or macOS.
+- **No compile step for programs.** `.rene` files run directly, so the
+  edit-run cycle is fast.
+- **Trade-off:** a tree-walking interpreter is simple to write and maintain
+  but runs slower than a compiler or bytecode VM. All numbers are
+  doubles, which keeps the language simple but means very large integers
+  (above about 9 quadrillion, 2^53) lose precision.
 
 ## Project layout
 

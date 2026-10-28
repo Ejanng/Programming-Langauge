@@ -7,7 +7,9 @@
 
 namespace rene::config {
 
+// Name shown in the REPL banner, --version and error messages.
 inline constexpr const char* LANGUAGE_NAME = "Rene";
+// Current version of the interpreter.
 inline constexpr const char* VERSION = "0.1.0";
 
 // Extension (including the leading dot) that Rene source files must use.

@@ -26,6 +26,7 @@ constexpr int EXIT_SYNTAX = 65;
 constexpr int EXIT_NO_INPUT = 66;
 constexpr int EXIT_RUNTIME = 70;
 
+// Prints the command-line help shown by --help.
 void printUsage() {
     std::cout << "Usage:\n"
               << "  rene                 start the interactive REPL\n"
@@ -49,6 +50,7 @@ int runSource(rene::Interpreter& interpreter, const std::string& source) {
     }
 }
 
+// Runs a .rene file after checking its extension and that it can be read.
 int runFile(const std::string& path) {
     namespace fs = std::filesystem;
     if (fs::path(path).extension() != rene::config::FILE_EXTENSION) {
@@ -73,6 +75,7 @@ int runFile(const std::string& path) {
     return runSource(interpreter, source);
 }
 
+// Interactive mode: reads one line at a time and runs it immediately.
 int runRepl() {
     std::cout << rene::config::LANGUAGE_NAME << " " << rene::config::VERSION
               << " REPL - type 'exit' to quit\n";
@@ -90,6 +93,8 @@ int runRepl() {
 
 }  // namespace
 
+// Entry point: no arguments starts the REPL, --help/--version print info,
+// and anything else is treated as a file to run.
 int main(int argc, char* argv[]) {
     if (argc == 1) return runRepl();
     if (argc > 2) {

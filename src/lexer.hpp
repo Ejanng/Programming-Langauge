@@ -14,8 +14,11 @@ namespace rene {
 // Turns Rene source text into a flat list of tokens.
 class Lexer {
 public:
+    // Takes the full source code of a program (or one REPL line).
     explicit Lexer(std::string source) : source_(std::move(source)) {}
 
+    // Scans the whole source and returns its tokens, always ending with an
+    // EndOfFile token. Throws a SyntaxError on invalid input.
     std::vector<Token> tokenize() {
         while (!atEnd()) {
             start_ = current_;
@@ -26,31 +29,43 @@ public:
     }
 
 private:
+    // The source code being scanned.
     std::string source_;
+    // Tokens found so far.
     std::vector<Token> tokens_;
+    // Index of the first character of the token being scanned.
     size_t start_ = 0;
+    // Index of the next character to read.
     size_t current_ = 0;
+    // Current line number, increased at each newline.
     int line_ = 1;
 
+    // Character helpers: atEnd checks for the end of input, advance consumes
+    // one character, and peek/peekNext look ahead without consuming.
     bool atEnd() const { return current_ >= source_.size(); }
     char advance() { return source_[current_++]; }
     char peek() const { return atEnd() ? '\0' : source_[current_]; }
     char peekNext() const { return current_ + 1 >= source_.size() ? '\0' : source_[current_ + 1]; }
 
+    // Consumes the next character only if it is `expected`. Used for
+    // two-character operators like == and <=.
     bool match(char expected) {
         if (atEnd() || source_[current_] != expected) return false;
         ++current_;
         return true;
     }
 
+    // Adds a token whose text is everything from start_ to current_.
     void add(TokenType type, double number = 0.0) {
         tokens_.push_back({type, source_.substr(start_, current_ - start_), number, line_});
     }
 
+    // Stops scanning with a SyntaxError on the current line.
     [[noreturn]] void fail(const std::string& message) const {
         throw ReneError("SyntaxError", line_, message);
     }
 
+    // Reads one token (or skips whitespace and comments) starting at start_.
     void scanToken() {
         char c = advance();
         switch (c) {
@@ -94,6 +109,8 @@ private:
         }
     }
 
+    // Reads a string literal after the opening quote, decoding escape
+    // sequences like \n. Strings may span several lines.
     void string() {
         int startLine = line_;
         std::string value;
@@ -119,6 +136,7 @@ private:
         tokens_.push_back({TokenType::String, value, 0.0, startLine});
     }
 
+    // Reads a number such as 42 or 3.14. All numbers are stored as doubles.
     void number() {
         while (std::isdigit(static_cast<unsigned char>(peek()))) advance();
         if (peek() == '.' && std::isdigit(static_cast<unsigned char>(peekNext()))) {
@@ -128,6 +146,7 @@ private:
         add(TokenType::Number, std::stod(source_.substr(start_, current_ - start_)));
     }
 
+    // Reads a name and decides whether it is a keyword or an identifier.
     void identifier() {
         static const std::unordered_map<std::string, TokenType> keywords = {
             {"let", TokenType::Let},       {"fn", TokenType::Fn},

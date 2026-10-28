@@ -30,8 +30,11 @@ namespace rene {
 //               | "(" expr ")" | "[" args? "]" | "fn" function
 class Parser {
 public:
+    // Takes the tokens produced by the Lexer.
     explicit Parser(std::vector<Token> tokens) : tokens_(std::move(tokens)) {}
 
+    // Parses the whole program into a list of top-level statements.
+    // Throws a SyntaxError at the first mistake.
     std::vector<StmtPtr> parse() {
         std::vector<StmtPtr> program;
         while (!check(TokenType::EndOfFile)) program.push_back(declaration());
@@ -39,37 +42,48 @@ public:
     }
 
 private:
+    // All tokens of the program, ending with EndOfFile.
     std::vector<Token> tokens_;
+    // Index of the next token to read.
     size_t current_ = 0;
+    // How many loops we are inside, so break/continue outside a loop are rejected.
     int loopDepth_ = 0;
+    // How many functions we are inside, so return outside a function is rejected.
     int functionDepth_ = 0;
 
     // ------------------------------------------------------------ helpers
 
+    // peek: the next token, previous: the token just consumed, check: whether
+    // the next token has the given type (without consuming it).
     const Token& peek() const { return tokens_[current_]; }
     const Token& previous() const { return tokens_[current_ - 1]; }
     bool check(TokenType type) const { return peek().type == type; }
 
+    // Like check, but looks one token further ahead.
     bool checkNext(TokenType type) const {
         return current_ + 1 < tokens_.size() && tokens_[current_ + 1].type == type;
     }
 
+    // Consumes the next token and returns it.
     const Token& advance() {
         if (!check(TokenType::EndOfFile)) ++current_;
         return previous();
     }
 
+    // Consumes the next token only if it has the given type.
     bool match(TokenType type) {
         if (!check(type)) return false;
         advance();
         return true;
     }
 
+    // Consumes a token that must be there; otherwise reports `message`.
     const Token& consume(TokenType type, const std::string& message) {
         if (check(type)) return advance();
         fail(peek(), message);
     }
 
+    // Throws a SyntaxError that points at `token`.
     [[noreturn]] void fail(const Token& token, const std::string& message) const {
         std::string where = token.type == TokenType::EndOfFile ? "end of file" : "'" + token.lexeme + "'";
         throw ReneError("SyntaxError", token.line, message + " (at " + where + ")");
@@ -77,6 +91,7 @@ private:
 
     // -------------------------------------------------------- statements
 
+    // A declaration (let or a named fn) or any other statement.
     StmtPtr declaration() {
         if (match(TokenType::Let)) return letDeclaration();
         if (check(TokenType::Fn) && checkNext(TokenType::Identifier)) {
@@ -87,6 +102,7 @@ private:
         return statement();
     }
 
+    // let name = value;   (the value is optional)
     StmtPtr letDeclaration() {
         int line = previous().line;
         std::string name = consume(TokenType::Identifier, "expected variable name after 'let'").lexeme;
@@ -120,6 +136,7 @@ private:
         return std::make_shared<FunctionStmt>(name, params, body, line);
     }
 
+    // Picks the right statement parser based on the first token.
     StmtPtr statement() {
         if (match(TokenType::Print)) return printStatement();
         if (match(TokenType::If)) return ifStatement();
@@ -148,11 +165,13 @@ private:
         return statements;
     }
 
+    // Parses a required { ... } block; `context` goes into the error message.
     StmtPtr block(const std::string& context) {
         int line = consume(TokenType::LeftBrace, "expected '{' " + context).line;
         return std::make_shared<BlockStmt>(blockContents(), line);
     }
 
+    // print expr, expr, ... ;
     StmtPtr printStatement() {
         int line = previous().line;
         std::vector<ExprPtr> values;
@@ -165,6 +184,7 @@ private:
         return std::make_shared<PrintStmt>(values, line);
     }
 
+    // if cond { ... } else if cond { ... } else { ... }
     StmtPtr ifStatement() {
         int line = previous().line;
         ExprPtr condition = expression();
@@ -176,6 +196,7 @@ private:
         return std::make_shared<IfStmt>(condition, thenBranch, elseBranch, line);
     }
 
+    // while cond { ... }
     StmtPtr whileStatement() {
         int line = previous().line;
         ExprPtr condition = expression();
@@ -185,6 +206,7 @@ private:
         return std::make_shared<WhileStmt>(condition, body, line);
     }
 
+    // for name in iterable { ... }
     StmtPtr forStatement() {
         int line = previous().line;
         std::string variable = consume(TokenType::Identifier, "expected loop variable after 'for'").lexeme;
@@ -196,6 +218,7 @@ private:
         return std::make_shared<ForInStmt>(variable, iterable, body, line);
     }
 
+    // return value;   (only allowed inside a function)
     StmtPtr returnStatement() {
         const Token& keyword = previous();
         if (functionDepth_ == 0) fail(keyword, "'return' outside of a function");
@@ -205,6 +228,7 @@ private:
         return std::make_shared<ReturnStmt>(value, keyword.line);
     }
 
+    // break; or continue;   (only allowed inside a loop)
     StmtPtr loopControl(bool isBreak) {
         const Token& keyword = previous();
         if (loopDepth_ == 0) fail(keyword, "'" + keyword.lexeme + "' outside of a loop");
@@ -215,8 +239,12 @@ private:
 
     // ------------------------------------------------------- expressions
 
+    // Each method below handles one precedence level and calls the next
+    // higher level, so tighter operators (like *) are grouped first.
     ExprPtr expression() { return assignment(); }
 
+    // Assignment is right-associative: a = b = 1 sets both. The left side is
+    // parsed as an ordinary expression, then checked to be a variable or index.
     ExprPtr assignment() {
         ExprPtr target = logicOr();
         if (!match(TokenType::Equal)) return target;
@@ -232,6 +260,7 @@ private:
         fail(equals, "invalid assignment target");
     }
 
+    // a or b or c
     ExprPtr logicOr() {
         ExprPtr expr = logicAnd();
         while (match(TokenType::Or)) {
@@ -241,6 +270,7 @@ private:
         return expr;
     }
 
+    // a and b and c
     ExprPtr logicAnd() {
         ExprPtr expr = equality();
         while (match(TokenType::And)) {
@@ -250,6 +280,7 @@ private:
         return expr;
     }
 
+    // a == b, a != b
     ExprPtr equality() {
         ExprPtr expr = comparison();
         while (match(TokenType::EqualEqual) || match(TokenType::BangEqual)) {
@@ -259,6 +290,7 @@ private:
         return expr;
     }
 
+    // a < b, a <= b, a > b, a >= b
     ExprPtr comparison() {
         ExprPtr expr = term();
         while (match(TokenType::Less) || match(TokenType::LessEqual) ||
@@ -269,6 +301,7 @@ private:
         return expr;
     }
 
+    // a + b, a - b
     ExprPtr term() {
         ExprPtr expr = factor();
         while (match(TokenType::Plus) || match(TokenType::Minus)) {
@@ -278,6 +311,7 @@ private:
         return expr;
     }
 
+    // a * b, a / b, a % b
     ExprPtr factor() {
         ExprPtr expr = unary();
         while (match(TokenType::Star) || match(TokenType::Slash) || match(TokenType::Percent)) {
@@ -287,6 +321,7 @@ private:
         return expr;
     }
 
+    // -a, not a (can repeat: - -a)
     ExprPtr unary() {
         if (match(TokenType::Minus) || match(TokenType::Not)) {
             const Token& op = previous();
@@ -295,6 +330,7 @@ private:
         return call();
     }
 
+    // Calls and indexing, which can be chained: f(x)[0](y)
     ExprPtr call() {
         ExprPtr expr = primary();
         while (true) {
@@ -325,6 +361,7 @@ private:
         return args;
     }
 
+    // The simplest expressions: literals, names, (grouping), lists and lambdas.
     ExprPtr primary() {
         const Token& token = advance();
         switch (token.type) {
