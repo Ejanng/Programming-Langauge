@@ -2,7 +2,7 @@
 
 This page goes through the final project rubric one row at a time. For each row it shows what earns **Excellent (20 pts)** and where the project shows it. The second half is a demo script and a list of likely questions for the presentation.
 
-All commands assume the program was built as in the README. On Windows with Visual Studio, use `build\Release\mylang.exe` in place of `./mylang`.
+All commands assume the program was built as in the README. On Windows with Visual Studio, use `build\Release\broadcast_language.exe` in place of `./broadcast_language`.
 
 ## Rubric, row by row
 
@@ -10,12 +10,12 @@ All commands assume the program was built as in the README. On Windows with Visu
 
 | Requirement (from the guidelines) | Done | Evidence |
 |---|---|---|
-| Simple arithmetic with (at least) integer values | Yes | `./mylang examples/arithmetic.bc`: `+ - * / %`, precedence, parentheses, negatives, whole numbers exact up to 9,007,199,254,740,992 |
-| Handles errors like incorrect format | Yes | `./mylang examples/error_syntax.bc`, plus the error table in [evaluation.md](evaluation.md#exception-handling) |
+| Simple arithmetic with (at least) integer values | Yes | `./broadcast_language examples/arithmetic.bc`: `+ - * / %`, precedence, parentheses, negatives, whole numbers exact up to 9,007,199,254,740,992 |
+| Handles errors like incorrect format | Yes | `./broadcast_language examples/error_syntax.bc`, plus the error table in [evaluation.md](evaluation.md#exception-handling) |
 | Presents correct output | Yes | `tests/run_tests.sh` checks 8 example programs against their expected output: `8 passed, 0 failed` |
 | Follows the PL evaluation criteria | Yes | [evaluation.md](evaluation.md) |
 | Proper documentation of the source code | Yes | See the Documentation row below |
-| Source code in a ZIP on Google Drive, link posted in MVLE | **Group to do** | The ZIP contains the `mylang/` folder; build output is not included |
+| Source code in a ZIP on Google Drive, link posted in MVLE | **Group to do** | The ZIP contains the `broadcast_language/` folder; build output is not included |
 
 ### Delivery: delivered on time
 
@@ -46,7 +46,7 @@ C has no classes. The equivalent of a class is a `struct`, and its "class variab
 ### Runtime: "executes without errors, excellent user prompts, good use of symbols, spacing in output"
 
 - **Executes without errors:** builds with no warnings under MSVC (`/W3`), and the CMake build turns on `-Wall -Wextra -Wpedantic` for GCC and Clang. No input crashes it: bad syntax, wrong types, division by zero and runaway recursion all produce a message, never a crash.
-- **User prompts:** the REPL opens with a banner naming the version, shows a `mylang>` prompt, and has a `help` command that lists every construct with an example. `./mylang --help` lists the command-line options. An unknown option says which argument was wrong.
+- **User prompts:** the REPL opens with a banner naming the version, shows a `broadcast_language>` prompt, and has a `help` command that lists every construct with an example. `./broadcast_language --help` lists the command-line options. An unknown option says which argument was wrong.
 - **Symbols and spacing in errors:** every error names its line and kind, shows the source line, and puts a `^` under the exact token for syntax errors:
 
   ```
@@ -72,13 +72,13 @@ Advanced features to point out, all beyond simple arithmetic:
 
 About 10 minutes. Practice it once. Each step lists what to run and what to say.
 
-1. **What it is (1 min).** "mylang is a small programming language we wrote in C. It reads source code, checks it, and runs it. It supports arithmetic, variables, `when`/`repeat`, functions and closures. Its keywords follow a team-communication theme: `assign`, `broadcast`, `report`."
+1. **What it is (1 min).** "broadcast_language is a small programming language we wrote in C. It reads source code, checks it, and runs it. It supports arithmetic, variables, `when`/`repeat`, functions and closures. Its keywords follow a team-communication theme: `assign`, `broadcast`, `report`."
 
 2. **The pipeline (2 min).** Show the table in the README. "Source text goes through the lexer, which makes tokens; the parser, which builds a syntax tree using our grammar; then the interpreter walks the tree and runs each node."
 
-3. **Arithmetic (1 min).** Run `./mylang examples/arithmetic.bc`. Point out `2 + 3 * 4` giving `14` and `(2 + 3) * 4` giving `20`. "Precedence comes from the grammar: `term` handles + and -, and calls `factor`, which handles * and /, so * binds tighter."
+3. **Arithmetic (1 min).** Run `./broadcast_language examples/arithmetic.bc`. Point out `2 + 3 * 4` giving `14` and `(2 + 3) * 4` giving `20`. "Precedence comes from the grammar: `term` handles + and -, and calls `factor`, which handles * and /, so * binds tighter."
 
-4. **Interactive mode (1 min).** Run `./mylang`, type `help`, then:
+4. **Interactive mode (1 min).** Run `./broadcast_language`, type `help`, then:
 
    ```
    assign price = 250
@@ -96,13 +96,13 @@ About 10 minutes. Practice it once. Each step lists what to run and what to say.
 
    "Badly formatted input is caught by the parser before anything runs, and the caret shows the exact token. Runtime errors like division by zero stop cleanly with the line number, and the session continues."
 
-6. **Functions and closures (2 min).** Run `./mylang examples/closures.bc`. "Each counter keeps its own `count`, because a function remembers the scope it was made in." Then run `tests/run_tests.sh`: "every example's output is checked against the expected output."
+6. **Functions and closures (2 min).** Run `./broadcast_language examples/closures.bc`. "Each counter keeps its own `count`, because a function remembers the scope it was made in." Then run `tests/run_tests.sh`: "every example's output is checked against the expected output."
 
 7. **Evaluation criteria (1 min).** Open [evaluation.md](evaluation.md) and name one point for each criterion. Readability: 12 keywords. Writability: functions and closures. Reliability: type checks with clear errors. Cost: no dependencies, builds anywhere.
 
 ## Questions to expect
 
-**Is mylang compiled or interpreted?**
+**Is broadcast_language compiled or interpreted?**
 Interpreted. It is a tree-walking interpreter: the parser builds a syntax tree and the interpreter runs it directly, node by node. Compiling to bytecode is a possible next step, which belongs to Compiler Design.
 
 **How does the parser handle operator precedence?**

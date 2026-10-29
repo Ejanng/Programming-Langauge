@@ -1,4 +1,4 @@
-// Entry point: `mylang script.bc` runs a file, `mylang` alone starts a REPL.
+// Entry point: `broadcast_language script.bc` runs a file, `broadcast_language` alone starts a REPL.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,10 +8,10 @@
 #include "interpreter.h"
 #include "value.h"
 
-#define MYLANG_VERSION "1.0"
+#define BROADCAST_LANGUAGE_VERSION "1.0"
 
 static const char* const USAGE =
-    "Usage: mylang [script.bc]\n"
+    "Usage: broadcast_language [script.bc]\n"
     "  script.bc  run this file (with no file, start the interactive REPL)\n"
     "  --help     show this message\n";
 
@@ -74,12 +74,12 @@ static long readLine(char** line, size_t* capacity, FILE* input) {
 }
 
 static void repl(Interpreter* interpreter) {
-    printf("mylang %s - interactive mode\n", MYLANG_VERSION);
+    printf("broadcast_language %s - interactive mode\n", BROADCAST_LANGUAGE_VERSION);
     printf("Type 'help' for examples, 'exit' to quit.\n\n");
     char* line = NULL;
     size_t capacity = 0;
     for (;;) {
-        printf("mylang> ");
+        printf("broadcast_language> ");
         fflush(stdout);
         long charactersRead = readLine(&line, &capacity, stdin);
         if (charactersRead < 0) {

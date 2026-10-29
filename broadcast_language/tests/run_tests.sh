@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Runs every examples/*.bc and compares the output (stdout and stderr) with the matching .expected file.
-# Usage: tests/run_tests.sh [path-to-mylang-binary]
+# Usage: tests/run_tests.sh [path-to-broadcast_language-binary]
 set -u
 cd "$(dirname "$0")/.."
-bin="${1:-./mylang}"
+bin="${1:-./broadcast_language}"
 pass=0
 fail=0
 for src in examples/*.bc; do

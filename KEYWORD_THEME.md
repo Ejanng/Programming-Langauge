@@ -3,7 +3,7 @@
 > **Status: applied.** The chosen set (see [Final choice](#final-choice)) is now the language's keywords in the code, examples and docs.
 > To change a word again, follow [CUSTOMIZING.md](CUSTOMIZING.md#1-language-keywords-broadcast-assign-protocol-when-repeat-).
 
-mylang has 12 keywords. This page suggests a replacement for each one, themed around how a team talks over radio: signals, broadcasts, reports, "copy" and "negative". Each row has a **recommended** word and some alternatives.
+broadcast_language has 12 keywords. This page suggests a replacement for each one, themed around how a team talks over radio: signals, broadcasts, reports, "copy" and "negative". Each row has a **recommended** word and some alternatives.
 
 ## Recommended set at a glance
 
@@ -23,11 +23,11 @@ mylang has 12 keywords. This page suggests a replacement for each one, themed ar
 | `or` | **`or`** (keep) | At least one signal is true | `either`, `alt` |
 
 ### Why keep `and` / `or`?
-Themed words here hurt readability: `ready also armed` is less clear than `ready and armed`. The PL evaluation criteria (readability and writability, see `mylang/docs/evaluation.md`) favor words whose meaning is obvious. If you want a fully themed set anyway, `also` / `either` are the best fit.
+Themed words here hurt readability: `ready also armed` is less clear than `ready and armed`. The PL evaluation criteria (readability and writability, see `broadcast_language/docs/evaluation.md`) favor words whose meaning is obvious. If you want a fully themed set anyway, `also` / `either` are the best fit.
 
 ## Example: the same program, before and after
 
-**Current mylang**
+**Current broadcast_language**
 ```
 fn fib(n) {
   if (n < 2) { return n; }
@@ -82,13 +82,13 @@ When you decide, these are the places that change (details in [CUSTOMIZING.md](C
 
 | Place | Change |
 |---|---|
-| `mylang/src/lexer.c`, keyword table in `scanIdentifier()` | Swap the quoted words (the `TOK_...` names stay the same) |
-| `mylang/src/parser.c` | Error messages that quote a keyword |
-| `mylang/src/main.c` | `REPL_HELP` examples |
-| `mylang/examples/*.bc` (+ `.expected` if output changes) | Rewrite the programs with the new words |
-| `mylang/README.md`, `mylang/DOCUMENTATION.md`, `mylang/docs/*.md` | Keyword tables and code samples |
+| `broadcast_language/src/lexer.c`, keyword table in `scanIdentifier()` | Swap the quoted words (the `TOK_...` names stay the same) |
+| `broadcast_language/src/parser.c` | Error messages that quote a keyword |
+| `broadcast_language/src/main.c` | `REPL_HELP` examples |
+| `broadcast_language/examples/*.bc` (+ `.expected` if output changes) | Rewrite the programs with the new words |
+| `broadcast_language/README.md`, `broadcast_language/DOCUMENTATION.md`, `broadcast_language/docs/*.md` | Keyword tables and code samples |
 
-Then rebuild and run `bash tests/run_tests.sh build/mylang`. All 8 tests should still pass.
+Then rebuild and run `bash tests/run_tests.sh build/broadcast_language`. All 8 tests should still pass.
 
 ## Final choice
 

@@ -1,6 +1,6 @@
-# Why mylang uses the "Team Communication & Signal" keywords
+# Why broadcast_language uses the "Team Communication & Signal" keywords
 
-mylang's keywords are not the usual `let`, `print`, `if` and `while`. They follow one theme: how a team talks over a radio or signal channel. This page explains why we made that choice, how it fits the programming language evaluation criteria, and what it costs. The full list of words is in [KEYWORD_THEME.md](KEYWORD_THEME.md).
+broadcast_language's keywords are not the usual `let`, `print`, `if` and `while`. They follow one theme: how a team talks over a radio or signal channel. This page explains why we made that choice, how it fits the programming language evaluation criteria, and what it costs. The full list of words is in [KEYWORD_THEME.md](KEYWORD_THEME.md).
 
 ## The keywords
 
@@ -21,7 +21,7 @@ mylang's keywords are not the usual `let`, `print`, `if` and `while`. They follo
 ## Why a theme at all
 
 ### 1. It gives the language an identity
-Most small teaching languages copy C or JavaScript word for word. With a consistent theme, mylang is recognizably *our* language. Every program reads like a set of instructions passed around a team:
+Most small teaching languages copy C or JavaScript word for word. With a consistent theme, broadcast_language is recognizably *our* language. Every program reads like a set of instructions passed around a team:
 
 ```
 protocol checkIn(name) {
@@ -79,4 +79,4 @@ We judged these small next to the gain in readability and identity.
 
 ## One-line summary for the presentation
 
-> "We gave mylang a 'Team Communication & Signal' theme: you `assign` values, `broadcast` output, define a `protocol` and `report` results. The words describe what they do, which helps readability, and the theme is used consistently, even in error messages and printed values. Underneath, the grammar and the behavior are exactly the same, which shows the difference between syntax and semantics."
+> "We gave broadcast_language a 'Team Communication & Signal' theme: you `assign` values, `broadcast` output, define a `protocol` and `report` results. The words describe what they do, which helps readability, and the theme is used consistently, even in error messages and printed values. Underneath, the grammar and the behavior are exactly the same, which shows the difference between syntax and semantics."

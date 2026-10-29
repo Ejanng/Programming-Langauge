@@ -1,4 +1,4 @@
-# mylang
+# broadcast_language
 
 A small programming language written in C11, with integer and decimal arithmetic, variables, functions, closures, `when`/`repeat`, and strings. Programs are run by a tree-walking interpreter: the source is turned into tokens, then a syntax tree, and the interpreter walks that tree to run it.
 
@@ -28,18 +28,18 @@ How the project meets each requirement in the guidelines:
 | Presents correct output | `tests/run_tests.sh` checks every example's output against its `.expected` file. |
 | Follows the PL evaluation criteria | [docs/evaluation.md](docs/evaluation.md) |
 | Proper documentation of the source code | Every source file starts with a comment saying what it does, every struct field is described, and [docs/code-guide.md](docs/code-guide.md) explains each file. |
-| Runtime: executes without errors, clear prompts | `mylang --help` explains the options; the REPL shows a banner, a `mylang>` prompt and a `help` command. Errors show the source line with a `^` under the problem. |
+| Runtime: executes without errors, clear prompts | `broadcast_language --help` explains the options; the REPL shows a banner, a `broadcast_language>` prompt and a `help` command. Errors show the source line with a `^` under the problem. |
 
 ## Build and run
 
 With GCC or Clang (Linux, macOS, or MinGW/MSYS2 on Windows):
 
 ```
-gcc -std=c11 -O2 -Wall -Wextra src/*.c -lm -o mylang
-./mylang examples/hello.bc   # run a file
-./mylang                     # start the REPL
-./mylang --help              # list the options
-tests/run_tests.sh           # run every example and compare with its .expected file
+gcc -std=c11 -O2 -Wall -Wextra src/*.c -lm -o broadcast_language
+./broadcast_language examples/hello.bc   # run a file
+./broadcast_language                     # start the REPL
+./broadcast_language --help              # list the options
+tests/run_tests.sh                       # run every example and compare with its .expected file
 ```
 
 With CMake, on any platform including Visual Studio on Windows:
@@ -47,37 +47,37 @@ With CMake, on any platform including Visual Studio on Windows:
 ```
 cmake -B build
 cmake --build build --config Release
-build/Release/mylang.exe examples/arithmetic.bc   # Visual Studio puts the program here
-build/mylang examples/arithmetic.bc               # other generators put it here
-ctest --test-dir build -C Release                 # runs tests/run_tests.sh (needs bash, e.g. Git Bash)
+build/Release/broadcast_language.exe examples/arithmetic.bc   # Visual Studio puts the program here
+build/broadcast_language examples/arithmetic.bc               # other generators put it here
+ctest --test-dir build -C Release                             # runs tests/run_tests.sh (needs bash, e.g. Git Bash)
 ```
 
 Directly with Microsoft Visual C++, from a "Developer Command Prompt for VS":
 
 ```
-cl /std:c11 /O2 /D_CRT_SECURE_NO_WARNINGS src\*.c /Fe:mylang.exe
-mylang.exe examples\arithmetic.bc
+cl /std:c11 /O2 /D_CRT_SECURE_NO_WARNINGS src\*.c /Fe:broadcast_language.exe
+broadcast_language.exe examples\arithmetic.bc
 ```
 
 ## A short session
 
 ```
-$ ./mylang
-mylang 1.0 - interactive mode
+$ ./broadcast_language
+broadcast_language 1.0 - interactive mode
 Type 'help' for examples, 'exit' to quit.
 
-mylang> broadcast 2 + 3 * 4
+broadcast_language> broadcast 2 + 3 * 4
 14
-mylang> assign n = 7
-mylang> broadcast n * n - 1
+broadcast_language> assign n = 7
+broadcast_language> broadcast n * n - 1
 48
-mylang> broadcast (3 + * 4
+broadcast_language> broadcast (3 + * 4
 [line 1] Syntax error: Expect expression. (found '*')
     1 | broadcast (3 + * 4;
       |                ^
-mylang> broadcast 10 / 0
+broadcast_language> broadcast 10 / 0
 [line 1] Runtime error: Division by zero.
-mylang> exit
+broadcast_language> exit
 ```
 
 ## The language

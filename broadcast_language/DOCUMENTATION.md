@@ -1,4 +1,4 @@
-# mylang: Project Documentation
+# broadcast_language: Project Documentation
 
 **Course:** CMPSC 132: Programming Languages
 **Term:** 1st semester, A.Y. 2025-2026
@@ -17,26 +17,26 @@
 
 ## Contents
 
-1. [What is mylang?](#1-what-is-mylang)
+1. [What is broadcast_language?](#1-what-is-broadcast_language)
 2. [How we met the project requirements](#2-how-we-met-the-project-requirements)
 3. [Getting started](#3-getting-started)
 4. [Learning the language](#4-learning-the-language)
 5. [Arithmetic in detail](#5-arithmetic-in-detail)
-6. [How mylang handles mistakes](#6-how-mylang-handles-mistakes)
+6. [How broadcast_language handles mistakes](#6-how-broadcast_language-handles-mistakes)
 7. [Sample programs and their output](#7-sample-programs-and-their-output)
-8. [How mylang works inside](#8-how-mylang-works-inside)
+8. [How broadcast_language works inside](#8-how-broadcast_language-works-inside)
 9. [The source code, file by file](#9-the-source-code-file-by-file)
 10. [Every data structure and its variables](#10-every-data-structure-and-its-variables)
-11. [How mylang meets the language evaluation criteria](#11-how-mylang-meets-the-language-evaluation-criteria)
+11. [How broadcast_language meets the language evaluation criteria](#11-how-broadcast_language-meets-the-language-evaluation-criteria)
 12. [Testing](#12-testing)
 13. [Libraries we used](#13-libraries-we-used)
 14. [Limits and future plans](#14-limits-and-future-plans)
 
 ---
 
-## 1. What is mylang?
+## 1. What is broadcast_language?
 
-mylang is a small programming language that we built from scratch in the C programming language. You type in instructions, and mylang reads them, checks them for mistakes, and carries them out.
+broadcast_language is a small programming language that we built from scratch in the C programming language. You type in instructions, and broadcast_language reads them, checks them for mistakes, and carries them out.
 
 Its main job is arithmetic: adding, subtracting, multiplying, dividing, and finding remainders, with whole numbers and decimals. On top of that it has the basic building blocks most languages share:
 
@@ -46,7 +46,7 @@ Its main job is arithmetic: adding, subtracting, multiplying, dividing, and find
 - **functions**, to name a piece of work and reuse it
 - **text (strings)**, to print readable messages
 
-Here is a small mylang program:
+Here is a small broadcast_language program:
 
 ```
 assign price = 250;
@@ -60,7 +60,7 @@ It prints:
 Total: 1000
 ```
 
-You can use mylang two ways: run a whole file of code, or type one line at a time in **interactive mode** and see each answer right away.
+You can use broadcast_language two ways: run a whole file of code, or type one line at a time in **interactive mode** and see each answer right away.
 
 ---
 
@@ -70,10 +70,10 @@ The project guidelines list five general requirements. This table shows each one
 
 | Requirement | How we met it | Where to see it |
 |---|---|---|
-| Process simple arithmetic, at least with integers | mylang supports `+`, `-`, `*`, `/` and `%`, parentheses, negative numbers, and the normal order of operations. Whole numbers stay exact up to 9,007,199,254,740,992. | Section 5, and `examples/arithmetic.bc` |
+| Process simple arithmetic, at least with integers | broadcast_language supports `+`, `-`, `*`, `/` and `%`, parentheses, negative numbers, and the normal order of operations. Whole numbers stay exact up to 9,007,199,254,740,992. | Section 5, and `examples/arithmetic.bc` |
 | Handle errors like incorrect format | Every mistake is caught and explained in plain words, with the line number, the line of code, and a `^` pointing at the problem. The program never crashes. | Section 6, and `examples/error_syntax.bc` |
-| Present correct output | We wrote down the correct output for every sample program, and an automatic test checks that mylang gives exactly that output. All 8 checks pass. | Sections 7 and 12 |
-| Follow the PL evaluation criteria | We checked mylang against readability, writability, reliability and cost. | Section 11, and `docs/evaluation.md` |
+| Present correct output | We wrote down the correct output for every sample program, and an automatic test checks that broadcast_language gives exactly that output. All 8 checks pass. | Sections 7 and 12 |
+| Follow the PL evaluation criteria | We checked broadcast_language against readability, writability, reliability and cost. | Section 11, and `docs/evaluation.md` |
 | Proper documentation of the source code | Every source file starts with a note explaining it. Every function and every variable inside every data structure has a comment. This document explains them all in simple words. | Sections 9 and 10 |
 
 ---
@@ -83,7 +83,7 @@ The project guidelines list five general requirements. This table shows each one
 ### What is in the folder
 
 ```
-mylang/
+broadcast_language/
 ├── DOCUMENTATION.md    this document
 ├── README.md           a short overview
 ├── CMakeLists.txt      build instructions for CMake
@@ -93,54 +93,54 @@ mylang/
 └── docs/               extra guides
 ```
 
-mylang programs are saved in files ending in `.bc`.
+broadcast_language programs are saved in files ending in `.bc`.
 
 ### Step 1: Build the program
 
 The source code has to be turned into a program the computer can run. This step is called **building** or **compiling**. Do it once.
 
-**On Windows with Visual Studio installed**, open a terminal in the `mylang` folder and type:
+**On Windows with Visual Studio installed**, open a terminal in the `broadcast_language` folder and type:
 
 ```
 cmake -B build
 cmake --build build --config Release
 ```
 
-This makes the program `build\Release\mylang.exe`.
+This makes the program `build\Release\broadcast_language.exe`.
 
 **On a computer with gcc** (Linux, Mac, or MinGW on Windows), type:
 
 ```
-gcc -std=c11 -O2 src/*.c -lm -o mylang
+gcc -std=c11 -O2 src/*.c -lm -o broadcast_language
 ```
 
-This makes the program `mylang` in the same folder.
+This makes the program `broadcast_language` in the same folder.
 
 ### Step 2: Run it
 
-The examples below use the Windows name, `.\build\Release\mylang.exe`. With gcc, use `./mylang` instead.
+The examples below use the Windows name, `.\build\Release\broadcast_language.exe`. With gcc, use `./broadcast_language` instead.
 
 **To start interactive mode**, run the program by itself:
 
 ```
-.\build\Release\mylang.exe
+.\build\Release\broadcast_language.exe
 ```
 
 You will see:
 
 ```
-mylang 1.0 - interactive mode
+broadcast_language 1.0 - interactive mode
 Type 'help' for examples, 'exit' to quit.
 
-mylang>
+broadcast_language>
 ```
 
-Now type any line and press Enter. In interactive mode you can leave out the `;` at the end of a line, because mylang adds it for you. Type `help` to see examples of everything the language can do, and `exit` to leave.
+Now type any line and press Enter. In interactive mode you can leave out the `;` at the end of a line, because broadcast_language adds it for you. Type `help` to see examples of everything the language can do, and `exit` to leave.
 
 **To run a file**, put its name after the program:
 
 ```
-.\build\Release\mylang.exe examples\arithmetic.bc
+.\build\Release\broadcast_language.exe examples\arithmetic.bc
 ```
 
 **Other option:**
@@ -155,7 +155,7 @@ Now type any line and press Enter. In interactive mode you can leave out the `;`
 
 ### Comments
 
-Anything after `//` on a line is a note for people. mylang ignores it.
+Anything after `//` on a line is a note for people. broadcast_language ignores it.
 
 ```
 // This is a comment.
@@ -183,7 +183,7 @@ broadcast 3 * 7;
 
 ### Values
 
-mylang has five kinds of values:
+broadcast_language has five kinds of values:
 
 | Kind | Examples | Notes |
 |---|---|---|
@@ -208,7 +208,7 @@ You must create a variable with `assign` before you use it. This catches spellin
 
 ### Joining text
 
-When one side of `+` is text, mylang joins the two sides into longer text:
+When one side of `+` is text, broadcast_language joins the two sides into longer text:
 
 ```
 assign name = "Ana";
@@ -310,7 +310,7 @@ broadcast x;     // outside
 
 ### Every keyword at a glance
 
-mylang has only 12 keywords:
+broadcast_language has only 12 keywords:
 
 | Keyword | Use |
 |---|---|
@@ -344,14 +344,14 @@ A minus sign in front of a number or expression makes it negative: `-8`, `-(4 * 
 
 ### Order of operations
 
-mylang follows the order you learned in school:
+broadcast_language follows the order you learned in school:
 
 1. Parentheses `( )` first
 2. Then `*`, `/` and `%`
 3. Then `+` and `-`
 4. Operators at the same level go from **left to right**
 
-| Expression | How mylang reads it | Result |
+| Expression | How broadcast_language reads it | Result |
 |---|---|---|
 | `2 + 3 * 4` | `2 + (3 * 4)` | `14` |
 | `(2 + 3) * 4` | parentheses first | `20` |
@@ -361,7 +361,7 @@ mylang follows the order you learned in school:
 
 ### Whole numbers and decimals
 
-mylang stores every number as a 64-bit decimal number (called a "double" in C). Whole numbers are stored exactly, with no rounding, all the way up to **9,007,199,254,740,992**, and printed with every digit:
+broadcast_language stores every number as a 64-bit decimal number (called a "double" in C). Whole numbers are stored exactly, with no rounding, all the way up to **9,007,199,254,740,992**, and printed with every digit:
 
 ```
 broadcast 2147483647 + 1;     // 2147483648
@@ -395,9 +395,9 @@ Dividing by zero, or finding a remainder after dividing by zero, stops the progr
 
 ---
 
-## 6. How mylang handles mistakes
+## 6. How broadcast_language handles mistakes
 
-Everyone makes mistakes when typing code. A good language should catch them early and explain them clearly. mylang does both, and it never crashes, whatever you type.
+Everyone makes mistakes when typing code. A good language should catch them early and explain them clearly. broadcast_language does both, and it never crashes, whatever you type.
 
 ### What an error message looks like
 
@@ -417,22 +417,22 @@ Every message has the same shape:
 
 ### The two kinds of mistakes
 
-**Syntax errors (wrong format).** The code is not written in a way mylang understands, like a sentence with bad grammar. mylang checks the **whole file before running any of it**, so if there is a format mistake anywhere, nothing runs at all. That way a program never stops halfway because of a typo.
+**Syntax errors (wrong format).** The code is not written in a way broadcast_language understands, like a sentence with bad grammar. broadcast_language checks the **whole file before running any of it**, so if there is a format mistake anywhere, nothing runs at all. That way a program never stops halfway because of a typo.
 
-**Runtime errors.** The code is written correctly, but something goes wrong while it runs, like dividing by zero. The lines before the mistake have already run; mylang stops at the mistake.
+**Runtime errors.** The code is written correctly, but something goes wrong while it runs, like dividing by zero. The lines before the mistake have already run; broadcast_language stops at the mistake.
 
-### Every mistake mylang catches
+### Every mistake broadcast_language catches
 
 **Format mistakes (syntax errors):**
 
-| You typed | What mylang says |
+| You typed | What broadcast_language says |
 |---|---|
 | `broadcast 3 +;` | `Expect expression. (found ';')`: something is missing after `+` |
 | `broadcast 3 3;` | `Expect ';' after value. (found '3')`: two numbers with nothing between them |
 | `broadcast (1 + 2;` | `Expect ')' after expression. (found ';')`: a bracket was never closed |
 | `broadcast 1 + 2` (in a file) | `Expect ';' after value. (reached end of file)`: the `;` is missing |
-| `broadcast 2 ** 3;` | `Expect expression. (found '*')`: `**` is not an operator in mylang |
-| `broadcast 5 $ 2;` | `Unexpected character '$'.`: a symbol mylang does not know |
+| `broadcast 2 ** 3;` | `Expect expression. (found '*')`: `**` is not an operator in broadcast_language |
+| `broadcast 5 $ 2;` | `Unexpected character '$'.`: a symbol broadcast_language does not know |
 | `broadcast 1..2;` | `Unexpected character '.'.`: a badly written number |
 | `broadcast "abc;` | `Unterminated string.`: text with no closing quote |
 | `assign = 5;` | `Expect variable name after 'assign'. (found '=')`: the name is missing |
@@ -440,7 +440,7 @@ Every message has the same shape:
 
 **Mistakes while running (runtime errors):**
 
-| You typed | What mylang says |
+| You typed | What broadcast_language says |
 |---|---|
 | `broadcast 10 / 0;` | `Division by zero.` |
 | `broadcast 5 % 0;` | `Division by zero.` |
@@ -457,7 +457,7 @@ In interactive mode, a mistake prints its message and then you can keep typing. 
 
 ### Exit codes
 
-When a file finishes, mylang reports a number to the system, so other programs and scripts can tell what happened:
+When a file finishes, broadcast_language reports a number to the system, so other programs and scripts can tell what happened:
 
 | Code | Meaning |
 |---|---|
@@ -536,7 +536,7 @@ perimeter = 38
 ```
 // The first program in the language.
 broadcast "Hello, world!";
-assign name = "mylang";
+assign name = "broadcast_language";
 broadcast "Welcome to " + name + "!";
 broadcast 1 + 2 * 3;
 ```
@@ -545,7 +545,7 @@ Output:
 
 ```
 Hello, world!
-Welcome to mylang!
+Welcome to broadcast_language!
 7
 ```
 
@@ -598,7 +598,7 @@ broadcast "never printed";
       |                ^
 ```
 
-Notice that even `broadcast 1 + 2;` did not run. mylang found the mistake first and refused to start.
+Notice that even `broadcast 1 + 2;` did not run. broadcast_language found the mistake first and refused to start.
 
 ### `error_runtime.bc`: a mistake while running
 
@@ -610,7 +610,7 @@ before
     3 | broadcast missing;
 ```
 
-Here the first line ran and printed `before`, then mylang stopped at the unknown variable.
+Here the first line ran and printed `before`, then broadcast_language stopped at the unknown variable.
 
 ### The other samples
 
@@ -622,9 +622,9 @@ Here the first line ran and printed `before`, then mylang stopped at the unknown
 
 ---
 
-## 8. How mylang works inside
+## 8. How broadcast_language works inside
 
-When you run a mylang program, your code passes through a few stages, like a product on an assembly line. Each stage has one job and hands its result to the next.
+When you run a broadcast_language program, your code passes through a few stages, like a product on an assembly line. Each stage has one job and hands its result to the next.
 
 ```
  Your code (text)
@@ -676,7 +676,7 @@ As it checks, it builds a **syntax tree**: a diagram of what the code means. For
       3   4
 ```
 
-The multiplication sits lower in the tree, so it is done first. This is how mylang gets the order of operations right. The parser has one rule for each level of precedence: the rule for `+` and `-` asks the rule for `*` and `/` to read each side first, so `*` and `/` always end up deeper in the tree.
+The multiplication sits lower in the tree, so it is done first. This is how broadcast_language gets the order of operations right. The parser has one rule for each level of precedence: the rule for `+` and `-` asks the rule for `*` and `/` to read each side first, so `*` and `/` always end up deeper in the tree.
 
 ### Stage 3: The interpreter (doing the work)
 
@@ -684,7 +684,7 @@ The interpreter walks through the tree and does the work. To work out `+`, it fi
 
 ### How errors travel back
 
-C does not have a built-in way to "throw" an error from deep inside the program back to the top. We used two standard C tools, `setjmp` and `longjmp`. Before a stage starts, `setjmp` marks a safe return point. When something goes wrong, `longjmp` jumps straight back to that point, however deep inside the program the mistake happened. There, mylang prints the message and stops cleanly, or carries on with the next line in interactive mode.
+C does not have a built-in way to "throw" an error from deep inside the program back to the top. We used two standard C tools, `setjmp` and `longjmp`. Before a stage starts, `setjmp` marks a safe return point. When something goes wrong, `longjmp` jumps straight back to that point, however deep inside the program the mistake happened. There, broadcast_language prints the message and stops cleanly, or carries on with the next line in interactive mode.
 
 ### How memory is handled
 
@@ -699,7 +699,7 @@ All source code is in the `src` folder. Each `.h` file (header) describes what a
 
 | File | Its job, in simple words |
 |---|---|
-| `main.c` | The starting point. Reads the command, then runs a file or starts interactive mode. Holds the help text and the `mylang>` prompt. |
+| `main.c` | The starting point. Reads the command, then runs a file or starts interactive mode. Holds the help text and the `broadcast_language>` prompt. |
 | `token.h` | The list of every kind of token (word) the language has. |
 | `lexer.h`, `lexer.c` | Stage 1: splits the code text into tokens. |
 | `ast.h` | Describes the pieces of the syntax tree. ("AST" means abstract syntax tree.) |
@@ -722,7 +722,7 @@ Other files:
 
 ## 10. Every data structure and its variables
 
-C does not have classes. Instead it has **structures** (`struct`): a group of variables kept together under one name, which is what a class's variables are. This section describes every structure in mylang and every variable inside it. The same descriptions are written as comments next to each variable in the source code.
+C does not have classes. Instead it has **structures** (`struct`): a group of variables kept together under one name, which is what a class's variables are. This section describes every structure in broadcast_language and every variable inside it. The same descriptions are written as comments next to each variable in the source code.
 
 A few words that come up often:
 
@@ -804,7 +804,7 @@ A few words that come up often:
 
 ### Values
 
-**`Value`** (`value.h`): any single value in mylang: a number, true/false, nil, text or a function.
+**`Value`** (`value.h`): any single value in broadcast_language: a number, true/false, nil, text or a function.
 
 | Variable | Type | What it holds |
 |---|---|---|
@@ -853,7 +853,7 @@ A few words that come up often:
 | Variable | Type | What it holds |
 |---|---|---|
 | `object` | `Obj` | The shared object header. |
-| `parent` | `ObjEnv*` | The scope around this one. If a name is not found here, mylang looks there next. Empty for the outermost (global) scope. |
+| `parent` | `ObjEnv*` | The scope around this one. If a name is not found here, broadcast_language looks there next. Empty for the outermost (global) scope. |
 | `variables` | `Table` | The variables made in this scope, by name. |
 | `captured` | `bool` | True once a function needs to remember this scope. Then it is kept until the program ends. |
 
@@ -908,9 +908,9 @@ A few words that come up often:
 
 ---
 
-## 11. How mylang meets the language evaluation criteria
+## 11. How broadcast_language meets the language evaluation criteria
 
-Programming languages are usually judged on four main things. Here is how mylang does on each, in short. The full version, with more examples, is in `docs/evaluation.md`.
+Programming languages are usually judged on four main things. Here is how broadcast_language does on each, in short. The full version, with more examples, is in `docs/evaluation.md`.
 
 ### Readability: is the code easy to read?
 
@@ -929,7 +929,7 @@ Programming languages are usually judged on four main things. Here is how mylang
 
 ### Reliability: does the code do what you expect?
 
-- **Types are checked.** You cannot subtract a number from text, and mylang says so instead of giving a strange answer.
+- **Types are checked.** You cannot subtract a number from text, and broadcast_language says so instead of giving a strange answer.
 - **Variables must be created first** with `assign`, which catches spelling mistakes.
 - **Function inputs are counted.** Giving a function the wrong number of inputs is an error.
 - **Every mistake is reported clearly** with the line and the exact spot, and the program never crashes.
@@ -946,7 +946,7 @@ Programming languages are usually judged on four main things. Here is how mylang
 
 ## 12. Testing
 
-We tested mylang in three ways.
+We tested broadcast_language in three ways.
 
 **1. Automatic tests.** The script `tests/run_tests.sh` runs all 8 sample programs. It compares each result with the correct output saved in the matching `.expected` file. Result:
 
@@ -957,7 +957,7 @@ We tested mylang in three ways.
 This proves that every sample gives the correct output. To run it (on Windows, use Git Bash):
 
 ```
-tests/run_tests.sh build/Release/mylang.exe
+tests/run_tests.sh build/Release/broadcast_language.exe
 ```
 
 **2. Mistake testing.** We typed in every kind of wrong input we could think of (the tables in Section 6) and checked that each one gives a clear message and never crashes.
@@ -995,13 +995,13 @@ The guidelines allow libraries, as long as we understand them. **We did not use 
 
 ## 14. Limits and future plans
 
-No language is perfect, and here are mylang's limits:
+No language is perfect, and here are broadcast_language's limits:
 
 - **No separate integer type.** Numbers are exact up to 9,007,199,254,740,992. Past that, whole numbers may be rounded.
 - **Type mistakes are found only while running.** A mistake in a part of the code that never runs is not reported.
 - **No `for` loop or `otherwise when`.** A `repeat` loop, and a `when` inside an `otherwise`, do the same jobs with a little more typing.
 - **No lists.** A variable holds one value at a time.
-- **One mistake at a time.** mylang stops at the first format mistake, so fixing several takes several runs.
+- **One mistake at a time.** broadcast_language stops at the first format mistake, so fixing several takes several runs.
 - **Memory is freed only at the end.** A program that runs for a very long time and makes a lot of text keeps using more memory.
 
 What we would add next:

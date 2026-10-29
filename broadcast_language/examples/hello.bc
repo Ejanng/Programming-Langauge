@@ -1,5 +1,5 @@
 // The first program in the language.
 broadcast "Hello, world!";
-assign name = "mylang";
+assign name = "broadcast_language";
 broadcast "Welcome to " + name + "!";
 broadcast 1 + 2 * 3;

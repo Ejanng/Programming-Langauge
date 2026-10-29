@@ -1,12 +1,12 @@
-# mylang and the language evaluation criteria
+# broadcast_language and the language evaluation criteria
 
-This document checks mylang against the standard criteria for evaluating programming languages: **readability**, **writability**, **reliability** and **cost**, plus portability and generality. Each point is backed by real mylang code and the output it produces, so every claim can be checked by running the interpreter. Weak spots are listed too, because a fair evaluation covers both sides.
+This document checks broadcast_language against the standard criteria for evaluating programming languages: **readability**, **writability**, **reliability** and **cost**, plus portability and generality. Each point is backed by real broadcast_language code and the output it produces, so every claim can be checked by running the interpreter. Weak spots are listed too, because a fair evaluation covers both sides.
 
-Every example below runs as written with `mylang file.bc`, which runs the program on mylang's tree-walking interpreter.
+Every example below runs as written with `broadcast_language file.bc`, which runs the program on broadcast_language's tree-walking interpreter.
 
 ## Summary
 
-| Criterion | Characteristic | How mylang meets it |
+| Criterion | Characteristic | How broadcast_language meets it |
 |---|---|---|
 | Readability | Simplicity | 12 keywords, 1 number type, one way to do each thing |
 | | Orthogonality | Every expression works in every expression position; functions are ordinary values |
@@ -47,7 +47,7 @@ One trade-off is that comparisons such as `<` work only on numbers. This keeps t
 
 ### Data types
 
-mylang has a real boolean type, so a condition reads as what it means:
+broadcast_language has a real boolean type, so a condition reads as what it means:
 
 ```
 assign done = negative;
@@ -93,7 +93,7 @@ broadcast "2^10 = " + power(2, 10);   // 2^10 = 1024
 
 ### Type checking
 
-mylang is dynamically typed, so types are checked while the program runs, at the operator that uses the value. A wrong type stops the program with a message that names the problem, instead of producing a meaningless result:
+broadcast_language is dynamically typed, so types are checked while the program runs, at the operator that uses the value. A wrong type stops the program with a message that names the problem, instead of producing a meaningless result:
 
 ```
 broadcast "a" - 1;      // [line 1] Runtime error: Operands must be numbers.

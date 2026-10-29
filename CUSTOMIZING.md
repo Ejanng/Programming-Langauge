@@ -1,6 +1,6 @@
-# Customizing mylang
+# Customizing broadcast_language
 
-How to change the language's keywords, symbols, name, prompts, messages and code names to your own preferences. All paths below are inside the `mylang/` folder.
+How to change the language's keywords, symbols, name, prompts, messages and code names to your own preferences. All paths below are inside the `broadcast_language/` folder.
 
 Most changes are a single edit in one place. After any change, rebuild and run the tests (see [After any change](#after-any-change)).
 
@@ -41,11 +41,11 @@ Example: changing `case '%':` to `case '#':` makes `#` the remainder operator. T
 
 | What | Where |
 |---|---|
-| REPL prompt `mylang>` | `printf("mylang> ")` in `repl()`, `src/main.c` |
+| REPL prompt `broadcast_language>` | `printf("broadcast_language> ")` in `repl()`, `src/main.c` |
 | Startup banner | the first `printf` in `repl()`, `src/main.c` |
-| Version number `1.0` | `#define MYLANG_VERSION` in `src/main.c` |
+| Version number `1.0` | `#define BROADCAST_LANGUAGE_VERSION` in `src/main.c` |
 | `--help` text | `USAGE` in `src/main.c` |
-| Program (executable) name | `CMakeLists.txt` (`project(...)`, `add_executable(...)` and every `mylang` after it) and the default `./mylang` in `tests/run_tests.sh` |
+| Program (executable) name | `CMakeLists.txt` (`project(...)`, `add_executable(...)` and every `broadcast_language` after it) and the default `./broadcast_language` in `tests/run_tests.sh` |
 
 ## 4. File extension (`.bc`)
 
@@ -79,9 +79,9 @@ Rebuild and run the tests:
 
 ```sh
 cmake -S . -B build && cmake --build build
-bash tests/run_tests.sh build/mylang
+bash tests/run_tests.sh build/broadcast_language
 ```
 
-On Windows with Visual Studio the program is `build\Release\mylang.exe`.
+On Windows with Visual Studio the program is `build\Release\broadcast_language.exe`.
 
 The tests run every `examples/*.bc` and compare the output with its `.expected` file. If a test fails, the `diff` it prints shows which example or expected output still uses the old word.

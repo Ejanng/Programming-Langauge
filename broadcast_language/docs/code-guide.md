@@ -274,7 +274,7 @@ Each is a big `switch` on the node's `kind`.
 - Parses the command line: a file path, or `--help`. Anything else prints the usage message and exits with code 64.
 - Creates one `Interpreter`, and passes each piece of source to `interpreterRun()`.
 - `runFile()` reads the entire file into a buffer and runs it. **The file extension is never checked**, so `.bc` is just a convention.
-- `repl()` is an interactive loop: show the `mylang>` prompt, read a line, trim it, run it. It auto-adds a `;` if you forget one, so `broadcast 1 + 2` works. Errors are printed but the session continues. `help` prints a short language reference; `exit`, `quit` or end of input ends it.
+- `repl()` is an interactive loop: show the `broadcast_language>` prompt, read a line, trim it, run it. It auto-adds a `;` if you forget one, so `broadcast 1 + 2` works. Errors are printed but the session continues. `help` prints a short language reference; `exit`, `quit` or end of input ends it.
 - `readLine()` reads one line of any length. It replaces POSIX `getline()`, which Windows does not have.
 - `--help` prints the usage text; an unknown option prints which argument was wrong, then the usage.
 - Cleanup at the end: `objectsFreeAll()` and `arenaFreeAll()`.
@@ -284,7 +284,7 @@ Each is a big `switch` on the node's `kind`.
 Defines the executable from all the `.c` files (C11, with warnings). GCC and Clang get `-Wall -Wextra -Wpedantic` and the math library; MSVC gets `/W3`, since it rejects the GCC flags. Build with `cmake -B build && cmake --build build`, or directly with:
 
 ```bash
-gcc -std=c11 -O2 -Wall -Wextra src/*.c -lm -o mylang
+gcc -std=c11 -O2 -Wall -Wextra src/*.c -lm -o broadcast_language
 ```
 
 `-lm` links the math library (needed for `fmod`).
