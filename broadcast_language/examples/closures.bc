@@ -10,7 +10,7 @@ protocol makeCounter() {
 
 assign a = makeCounter();
 assign b = makeCounter();
-broadcast a();
-broadcast a();
-broadcast b();
-broadcast a();
+broadcast "a() = " + a();
+broadcast "a() = " + a();
+broadcast "b() = " + b();   // b has its own count, so it starts again at 1
+broadcast "a() = " + a();

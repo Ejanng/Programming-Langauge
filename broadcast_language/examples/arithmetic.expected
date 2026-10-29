@@ -1,28 +1,29 @@
 -- basic operators --
-12
-2
-35
-5
-2
+7 + 5 = 12
+7 - 5 = 2
+7 * 5 = 35
+20 / 4 = 5
+17 % 5 = 2
 -- precedence and grouping --
-14
-20
-89
-70
+2 + 3 * 4 = 14
+(2 + 3) * 4 = 20
+100 - 10 - 1 = 89
+2 * (3 + 4) * 5 = 70
 -- negative numbers --
--5
--7
--12
--2
+-8 + 3 = -5
+5 - 12 = -7
+-(4 * 3) = -12
+-17 % 5 = -2
 -- large whole numbers stay exact --
-2147483648
-1000000000000
-9007199254740992
+2147483647 + 1 = 2147483648
+1000000 * 1000000 = 1000000000000
+9007199254740992 = 9007199254740992
 -- division that does not come out even --
-3.5
-0.333333333333333
+7 / 2 = 3.5
+1 / 3 = 0.333333333333333
 -- variables and expressions --
-area = 84
-perimeter = 38
-2^10 = 1024
-3^5 = 243
+width = 12, height = 7
+area = width * height = 84
+perimeter = 2 * (width + height) = 38
+power(2, 10) = 2^10 = 1024
+power(3, 5) = 3^5 = 243

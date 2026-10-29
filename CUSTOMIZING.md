@@ -24,7 +24,7 @@ Then update the places that mention the old word:
 - **Printed values**: if you rename `affirm`, `negative` or `silence`, also change what `broadcast` shows for them in `valueToString()` in `src/value.c` (and `<protocol name>` for functions, in the same function)
 - **REPL help text**: `REPL_HELP` in `src/main.c`
 - **Example programs**: `examples/*.bc`, and any `.expected` file whose output changed
-- **Docs**: the keyword table in `DOCUMENTATION.md` ("Every keyword at a glance") and `docs/evaluation.md`
+- **Docs**: the keyword table in `DOCUMENTATION.md` ("Every keyword at a glance"), and `KEYWORD_THEME.md` / `WHY_KEYWORD_THEME.md`
 
 ## 2. Operator symbols (`+ - * / %`, `==`, `<`, ...)
 

@@ -2,4 +2,4 @@
 broadcast "Hello, world!";
 assign name = "broadcast_language";
 broadcast "Welcome to " + name + "!";
-broadcast 1 + 2 * 3;
+broadcast "1 + 2 * 3 = " + (1 + 2 * 3);

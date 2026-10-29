@@ -1,8 +1,8 @@
-inner block
-outer block
-global
-2
-found it
-0
-10
-liftoff
+in the inner block, x = inner block
+in the outer block, x = outer block
+at the top level, x = global
+after two incs, pair("get")() = 2
+outer()() = found it
+first() = 0
+second() = 10
+countdown(5) = liftoff

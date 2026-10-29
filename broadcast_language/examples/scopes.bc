@@ -4,11 +4,11 @@ assign x = "global";
   assign x = "outer block";
   {
     assign x = "inner block";
-    broadcast x;
+    broadcast "in the inner block, x = " + x;
   }
-  broadcast x;
+  broadcast "in the outer block, x = " + x;
 }
-broadcast x;
+broadcast "at the top level, x = " + x;
 
 // Two closures made in the same call share one captured variable.
 protocol makePair() {
@@ -24,7 +24,7 @@ protocol fn_pair(a, b) {
 assign pair = makePair();
 pair("inc")();
 pair("inc")();
-broadcast pair("get")();
+broadcast "after two incs, pair(\"get\")() = " + pair("get")();
 
 // A capture that passes through a middle function it is not used in.
 protocol outer() {
@@ -35,7 +35,7 @@ protocol outer() {
   }
   report middle();
 }
-broadcast outer()();
+broadcast "outer()() = " + outer()();
 
 // Each loop iteration gets its own variable, so each closure remembers a different value.
 assign first = silence;
@@ -47,12 +47,12 @@ repeat (i < 2) {
   when (i == 0) first = show; otherwise second = show;
   i = i + 1;
 }
-broadcast first();
-broadcast second();
+broadcast "first() = " + first();
+broadcast "second() = " + second();
 
 // Recursion through a local function.
 protocol countdown(n) {
   protocol go(k) { when (k == 0) report "liftoff"; report go(k - 1); }
   report go(n);
 }
-broadcast countdown(5);
+broadcast "countdown(5) = " + countdown(5);

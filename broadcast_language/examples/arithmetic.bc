@@ -1,39 +1,42 @@
 // Integer arithmetic: the core requirement of the language.
+// Each line prints the calculation, then its answer. The calculation is in ( ) so it is
+// worked out first; without them, "7 + 5 = " + 7 + 5 would join text and give "7 + 5 = 75".
 
 broadcast "-- basic operators --";
-broadcast 7 + 5;      // 12
-broadcast 7 - 5;      // 2
-broadcast 7 * 5;      // 35
-broadcast 20 / 4;     // 5
-broadcast 17 % 5;     // 2 (remainder)
+broadcast "7 + 5 = " + (7 + 5);
+broadcast "7 - 5 = " + (7 - 5);
+broadcast "7 * 5 = " + (7 * 5);
+broadcast "20 / 4 = " + (20 / 4);
+broadcast "17 % 5 = " + (17 % 5);                   // % is the remainder
 
 broadcast "-- precedence and grouping --";
-broadcast 2 + 3 * 4;     // 14: * and / bind tighter than + and -
-broadcast (2 + 3) * 4;   // 20: parentheses group first
-broadcast 100 - 10 - 1;  // 89: same-precedence operators go left to right
-broadcast 2 * (3 + 4) * 5;
+broadcast "2 + 3 * 4 = " + (2 + 3 * 4);             // * and / bind tighter than + and -
+broadcast "(2 + 3) * 4 = " + ((2 + 3) * 4);         // parentheses group first
+broadcast "100 - 10 - 1 = " + (100 - 10 - 1);       // same-precedence operators go left to right
+broadcast "2 * (3 + 4) * 5 = " + (2 * (3 + 4) * 5);
 
 broadcast "-- negative numbers --";
-broadcast -8 + 3;
-broadcast 5 - 12;
-broadcast -(4 * 3);
-broadcast -17 % 5;        // the remainder takes the sign of the left operand
+broadcast "-8 + 3 = " + (-8 + 3);
+broadcast "5 - 12 = " + (5 - 12);
+broadcast "-(4 * 3) = " + (-(4 * 3));
+broadcast "-17 % 5 = " + (-17 % 5);                 // the remainder takes the sign of the left operand
 
 broadcast "-- large whole numbers stay exact --";
-broadcast 2147483647 + 1;
-broadcast 1000000 * 1000000;
-broadcast 9007199254740992;
+broadcast "2147483647 + 1 = " + (2147483647 + 1);
+broadcast "1000000 * 1000000 = " + (1000000 * 1000000);
+broadcast "9007199254740992 = " + 9007199254740992;
 
 broadcast "-- division that does not come out even --";
-broadcast 7 / 2;          // 3.5
-broadcast 1 / 3;
+broadcast "7 / 2 = " + (7 / 2);
+broadcast "1 / 3 = " + (1 / 3);
 
 broadcast "-- variables and expressions --";
 assign width = 12;
 assign height = 7;
+broadcast "width = " + width + ", height = " + height;
 assign area = width * height;
-broadcast "area = " + area;
-broadcast "perimeter = " + 2 * (width + height);
+broadcast "area = width * height = " + area;
+broadcast "perimeter = 2 * (width + height) = " + 2 * (width + height);
 
 protocol power(base, exp) {
   assign result = 1;
@@ -43,5 +46,5 @@ protocol power(base, exp) {
   }
   report result;
 }
-broadcast "2^10 = " + power(2, 10);
-broadcast "3^5 = " + power(3, 5);
+broadcast "power(2, 10) = 2^10 = " + power(2, 10);
+broadcast "power(3, 5) = 3^5 = " + power(3, 5);

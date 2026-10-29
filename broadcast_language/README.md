@@ -5,29 +5,28 @@ A small programming language written in C11, with integer and decimal arithmetic
 Documentation:
 
 - **[DOCUMENTATION.md](DOCUMENTATION.md): the main project documentation. Start here.** It covers how to use the language, error handling, sample outputs, how it works inside, and every data structure and its variables, in simple terms.
-- [docs/code-guide.md](docs/code-guide.md) walks through every source file.
-- [docs/evaluation.md](docs/evaluation.md) evaluates the language against the readability, writability, reliability and cost criteria.
-- [docs/rubric.md](docs/rubric.md) goes through the grading rubric row by row, with a presentation demo script and likely questions.
+- [docs/data-structures.md](docs/data-structures.md) describes every data structure and every variable inside it.
 
 ## Course project
 
-CMPSC 132: Programming Languages, 1st semester, A.Y. 2025-2026, Final Project.
+CMPSC 132: Programming Languages, Final Project.
 
 **Group members:**
 
-- _Name 1_
-- _Name 2_
-- _Name 3_
+- _Earl Jasper Aquitania_
+- _Cristine Kaye Fiesta_
+- _Shiela Mae Peralta_
+- _Christine Joy Marie Tulali_
 
 How the project meets each requirement in the guidelines:
 
 | Requirement | Where it is met |
 |---|---|
 | Simple arithmetic on (at least) integer values | `+ - * / %`, parentheses and unary `-` with the usual precedence; whole numbers up to 2^53 are exact. See `examples/arithmetic.bc`. |
-| Handles errors such as incorrect format | Lexer, parser and runtime errors all print `[line N] Kind error: message` and never crash. See `examples/error_syntax.bc`, `examples/error_runtime.bc`, and the error table in [docs/evaluation.md](docs/evaluation.md#exception-handling). |
+| Handles errors such as incorrect format | Lexer, parser and runtime errors all print `[line N] Kind error: message` and never crash. See `examples/error_syntax.bc`, `examples/error_runtime.bc`, and the error tables in [DOCUMENTATION.md](DOCUMENTATION.md#5-how-broadcast_language-handles-mistakes). |
 | Presents correct output | `tests/run_tests.sh` checks every example's output against its `.expected` file. |
-| Follows the PL evaluation criteria | [docs/evaluation.md](docs/evaluation.md) |
-| Proper documentation of the source code | Every source file starts with a comment saying what it does, every struct field is described, and [docs/code-guide.md](docs/code-guide.md) explains each file. |
+| Follows the PL evaluation criteria | [DOCUMENTATION.md, Section 10](DOCUMENTATION.md#10-how-broadcast_language-meets-the-language-evaluation-criteria) |
+| Proper documentation of the source code | Every source file starts with a comment saying what it does, every struct field is described in [docs/data-structures.md](docs/data-structures.md), and [DOCUMENTATION.md](DOCUMENTATION.md#8-the-source-code-file-by-file) explains each file. |
 | Runtime: executes without errors, clear prompts | `broadcast_language --help` explains the options; the REPL shows a banner, a `broadcast_language>` prompt and a `help` command. Errors show the source line with a `^` under the problem. |
 
 ## Build and run

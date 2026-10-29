@@ -23,7 +23,7 @@ broadcast_language has 12 keywords. This page suggests a replacement for each on
 | `or` | **`or`** (keep) | At least one signal is true | `either`, `alt` |
 
 ### Why keep `and` / `or`?
-Themed words here hurt readability: `ready also armed` is less clear than `ready and armed`. The PL evaluation criteria (readability and writability, see `broadcast_language/docs/evaluation.md`) favor words whose meaning is obvious. If you want a fully themed set anyway, `also` / `either` are the best fit.
+Themed words here hurt readability: `ready also armed` is less clear than `ready and armed`. The PL evaluation criteria (readability and writability, see Section 10 of `broadcast_language/DOCUMENTATION.md`) favor words whose meaning is obvious. If you want a fully themed set anyway, `also` / `either` are the best fit.
 
 ## Example: the same program, before and after
 

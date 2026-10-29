@@ -1,12 +1,14 @@
 // Operators, truthiness and when/otherwise.
-broadcast 10 % 3;
-broadcast 7 / 2;
-broadcast -(2 + 3);
-broadcast 1 < 2 and 2 < 3;
-broadcast silence or "default";
-broadcast !affirm;
-broadcast 1 == 1;
-broadcast "a" == "a";
-broadcast silence == negative;
+// Each line prints the expression, then "->" and what it gives.
+broadcast "10 % 3 -> " + (10 % 3);
+broadcast "7 / 2 -> " + (7 / 2);
+broadcast "-(2 + 3) -> " + (-(2 + 3));
+broadcast "1 < 2 and 2 < 3 -> " + (1 < 2 and 2 < 3);
+broadcast "silence or \"default\" -> " + (silence or "default");   // or gives the first true value
+broadcast "!affirm -> " + (!affirm);
+broadcast "1 == 1 -> " + (1 == 1);
+broadcast "\"a\" == \"a\" -> " + ("a" == "a");
+broadcast "silence == negative -> " + (silence == negative);     // different types are never equal
 assign x = 5;
-when (x > 3) broadcast "big"; otherwise broadcast "small";
+broadcast "x = " + x;
+when (x > 3) broadcast "x > 3, so: big"; otherwise broadcast "x <= 3, so: small";

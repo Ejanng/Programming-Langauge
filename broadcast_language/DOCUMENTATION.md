@@ -1,36 +1,26 @@
 # broadcast_language: Project Documentation
 
 **Course:** CMPSC 132: Programming Languages
-**Term:** 1st semester, A.Y. 2025-2026
 **Project:** Final Project: A Simple Programming Language
 **Submitted:** October 2026
-
-**Group members:**
-
-| Name | Role |
-|---|---|
-| _Name 1_ | _e.g. lexer and parser_ |
-| _Name 2_ | _e.g. interpreter and testing_ |
-| _Name 3_ | _e.g. documentation and presentation_ |
 
 ---
 
 ## Contents
 
 1. [What is broadcast_language?](#1-what-is-broadcast_language)
-2. [How we met the project requirements](#2-how-we-met-the-project-requirements)
-3. [Getting started](#3-getting-started)
-4. [Learning the language](#4-learning-the-language)
-5. [Arithmetic in detail](#5-arithmetic-in-detail)
-6. [How broadcast_language handles mistakes](#6-how-broadcast_language-handles-mistakes)
-7. [Sample programs and their output](#7-sample-programs-and-their-output)
-8. [How broadcast_language works inside](#8-how-broadcast_language-works-inside)
-9. [The source code, file by file](#9-the-source-code-file-by-file)
-10. [Every data structure and its variables](#10-every-data-structure-and-its-variables)
-11. [How broadcast_language meets the language evaluation criteria](#11-how-broadcast_language-meets-the-language-evaluation-criteria)
-12. [Testing](#12-testing)
-13. [Libraries we used](#13-libraries-we-used)
-14. [Limits and future plans](#14-limits-and-future-plans)
+2. [Getting started](#2-getting-started)
+3. [Learning the language](#3-learning-the-language)
+4. [Arithmetic in detail](#4-arithmetic-in-detail)
+5. [How broadcast_language handles mistakes](#5-how-broadcast_language-handles-mistakes)
+6. [Sample programs and their output](#6-sample-programs-and-their-output)
+7. [How broadcast_language works inside](#7-how-broadcast_language-works-inside)
+8. [The source code, file by file](#8-the-source-code-file-by-file)
+9. [Every data structure and its variables](#9-every-data-structure-and-its-variables)
+10. [How broadcast_language meets the language evaluation criteria](#10-how-broadcast_language-meets-the-language-evaluation-criteria)
+11. [Testing](#11-testing)
+12. [Libraries we used](#12-libraries-we-used)
+13. [Limits and future plans](#13-limits-and-future-plans)
 
 ---
 
@@ -64,21 +54,7 @@ You can use broadcast_language two ways: run a whole file of code, or type one l
 
 ---
 
-## 2. How we met the project requirements
-
-The project guidelines list five general requirements. This table shows each one and where you can see it working.
-
-| Requirement | How we met it | Where to see it |
-|---|---|---|
-| Process simple arithmetic, at least with integers | broadcast_language supports `+`, `-`, `*`, `/` and `%`, parentheses, negative numbers, and the normal order of operations. Whole numbers stay exact up to 9,007,199,254,740,992. | Section 5, and `examples/arithmetic.bc` |
-| Handle errors like incorrect format | Every mistake is caught and explained in plain words, with the line number, the line of code, and a `^` pointing at the problem. The program never crashes. | Section 6, and `examples/error_syntax.bc` |
-| Present correct output | We wrote down the correct output for every sample program, and an automatic test checks that broadcast_language gives exactly that output. All 8 checks pass. | Sections 7 and 12 |
-| Follow the PL evaluation criteria | We checked broadcast_language against readability, writability, reliability and cost. | Section 11, and `docs/evaluation.md` |
-| Proper documentation of the source code | Every source file starts with a note explaining it. Every function and every variable inside every data structure has a comment. This document explains them all in simple words. | Sections 9 and 10 |
-
----
-
-## 3. Getting started
+## 2. Getting started
 
 ### What is in the folder
 
@@ -97,34 +73,24 @@ broadcast_language programs are saved in files ending in `.bc`.
 
 ### Step 1: Build the program
 
-The source code has to be turned into a program the computer can run. This step is called **building** or **compiling**. Do it once.
+The source code has to be turned into a program the computer can run. This step is called **building** or **compiling**. Do it once, in a terminal opened inside the `broadcast_language` folder. Pick the line for your system:
 
-**On Windows with Visual Studio installed**, open a terminal in the `broadcast_language` folder and type:
-
-```
-cmake -B build
-cmake --build build --config Release
-```
-
-This makes the program `build\Release\broadcast_language.exe`.
-
-**On a computer with gcc** (Linux, Mac, or MinGW on Windows), type:
-
-```
-gcc -std=c11 -O2 src/*.c -lm -o broadcast_language
-```
-
-This makes the program `broadcast_language` in the same folder.
+| Your system | Build command | The program it makes |
+|---|---|---|
+| **Linux or Mac** (gcc) | `gcc -std=c11 -O2 src/*.c -lm -o broadcast_language` | `./broadcast_language` |
+| **Windows with MinGW** (gcc) | `gcc -std=c11 -O2 src/*.c -lm -o broadcast_language.exe` | `.\broadcast_language.exe` |
+| **Windows with Visual Studio** (CMake) | `cmake -B build` then `cmake --build build --config Release` | `.\build\Release\broadcast_language.exe` |
+| **Linux or Mac with CMake** | `cmake -B build` then `cmake --build build` | `./build/broadcast_language` |
 
 ### Step 2: Run it
 
-The examples below use the Windows name, `.\build\Release\broadcast_language.exe`. With gcc, use `./broadcast_language` instead.
+Use the program name from the last column above. The examples below are for **Linux or Mac** after building with gcc; on Windows, use the matching name from the table and write paths with `\` (for example `examples\arithmetic.bc`).
 
 **To start interactive mode**, run the program by itself:
 
-```
-.\build\Release\broadcast_language.exe
-```
+| Linux or Mac | Windows (Visual Studio) |
+|---|---|
+| `./build/broadcast_language` | `.\build\Release\broadcast_language.exe` |
 
 You will see:
 
@@ -139,9 +105,9 @@ Now type any line and press Enter. In interactive mode you can leave out the `;`
 
 **To run a file**, put its name after the program:
 
-```
-.\build\Release\broadcast_language.exe examples\arithmetic.bc
-```
+| Linux or Mac | Windows (Visual Studio) |
+|---|---|
+| `./broadcast_language examples/arithmetic.bc` | `.\build\Release\broadcast_language.exe examples\arithmetic.bc` |
 
 **Other option:**
 
@@ -151,7 +117,7 @@ Now type any line and press Enter. In interactive mode you can leave out the `;`
 
 ---
 
-## 4. Learning the language
+## 3. Learning the language
 
 ### Comments
 
@@ -204,7 +170,7 @@ score = score + 5;
 broadcast score;        // 15
 ```
 
-You must create a variable with `assign` before you use it. This catches spelling mistakes (see Section 6).
+You must create a variable with `assign` before you use it. This catches spelling mistakes (see Section 5).
 
 ### Joining text
 
@@ -326,7 +292,7 @@ broadcast_language has only 12 keywords:
 
 ---
 
-## 5. Arithmetic in detail
+## 4. Arithmetic in detail
 
 Arithmetic is the heart of this project, so this section covers exactly how it works.
 
@@ -395,7 +361,7 @@ Dividing by zero, or finding a remainder after dividing by zero, stops the progr
 
 ---
 
-## 6. How broadcast_language handles mistakes
+## 5. How broadcast_language handles mistakes
 
 Everyone makes mistakes when typing code. A good language should catch them early and explain them clearly. broadcast_language does both, and it never crashes, whatever you type.
 
@@ -469,87 +435,22 @@ When a file finishes, broadcast_language reports a number to the system, so othe
 
 ---
 
-## 7. Sample programs and their output
+## 6. Sample programs and their output
 
-The `examples` folder has 8 sample programs. Next to each one is a `.expected` file holding its correct output. Here are the main ones.
+The `examples` folder has 8 sample programs. Next to each one is a `.expected` file holding its exact correct output, so you can compare. Run any of them by putting its name after the program, for example `./broadcast_language examples/fib.bc` (see [Step 2](#step-2-run-it) for Windows).
 
-### `arithmetic.bc`: integer arithmetic
+| File | What it shows |
+|---|---|
+| `arithmetic.bc` | Integer arithmetic: all five operators, order of operations, negative numbers, very large whole numbers, decimals |
+| `hello.bc` | The basics: printing, variables and joining text |
+| `fib.bc` | Loops and recursion (shown below) |
+| `logic.bc` | `and`, `or`, `!`, and which values count as true or false |
+| `scopes.bc` | Variables inside `{ }` blocks, and the same name used at different levels |
+| `closures.bc` | Functions that remember their own private variables |
+| `error_syntax.bc` | A format mistake: the error is reported and **nothing** runs, not even the lines before it |
+| `error_runtime.bc` | A mistake while running: the lines before it run, then the program stops |
 
-```
-broadcast 7 + 5;          // 12
-broadcast 2 + 3 * 4;      // 14
-broadcast (2 + 3) * 4;    // 20
-broadcast -8 + 3;         // -5
-broadcast 2147483647 + 1;
-broadcast 7 / 2;          // 3.5
-
-assign width = 12;
-assign height = 7;
-broadcast "area = " + width * height;
-
-protocol power(base, exp) {
-  assign result = 1;
-  repeat (exp > 0) {
-    result = result * base;
-    exp = exp - 1;
-  }
-  report result;
-}
-broadcast "2^10 = " + power(2, 10);
-```
-
-(This is a shortened version. The full file has more lines.) Output of the full file:
-
-```
--- basic operators --
-12
-2
-35
-5
-2
--- precedence and grouping --
-14
-20
-89
-70
--- negative numbers --
--5
--7
--12
--2
--- large whole numbers stay exact --
-2147483648
-1000000000000
-9007199254740992
--- division that does not come out even --
-3.5
-0.333333333333333
--- variables and expressions --
-area = 84
-perimeter = 38
-2^10 = 1024
-3^5 = 243
-```
-
-### `hello.bc`: the basics
-
-```
-// The first program in the language.
-broadcast "Hello, world!";
-assign name = "broadcast_language";
-broadcast "Welcome to " + name + "!";
-broadcast 1 + 2 * 3;
-```
-
-Output:
-
-```
-Hello, world!
-Welcome to broadcast_language!
-7
-```
-
-### `fib.bc`: loops and recursion
+### Example: `fib.bc`
 
 This prints the Fibonacci numbers, where each number is the sum of the two before it.
 
@@ -566,63 +467,19 @@ repeat (i <= 10) {
 }
 ```
 
-Output:
+Output (first and last lines):
 
 ```
 fib(0) = 0
 fib(1) = 1
 fib(2) = 1
-fib(3) = 2
-fib(4) = 3
-fib(5) = 5
-fib(6) = 8
-fib(7) = 13
-fib(8) = 21
-fib(9) = 34
+...
 fib(10) = 55
 ```
 
-### `error_syntax.bc`: a format mistake
-
-```
-broadcast 1 + 2;
-broadcast (3 + * 4;
-broadcast "never printed";
-```
-
-(The real file has two comment lines on top, so the mistake is on line 4.) Output:
-
-```
-[line 4] Syntax error: Expect expression. (found '*')
-    4 | broadcast (3 + * 4;
-      |                ^
-```
-
-Notice that even `broadcast 1 + 2;` did not run. broadcast_language found the mistake first and refused to start.
-
-### `error_runtime.bc`: a mistake while running
-
-Output:
-
-```
-before
-[line 3] Runtime error: Undefined variable 'missing'.
-    3 | broadcast missing;
-```
-
-Here the first line ran and printed `before`, then broadcast_language stopped at the unknown variable.
-
-### The other samples
-
-| File | What it shows |
-|---|---|
-| `logic.bc` | `and`, `or`, `!`, and which values count as true or false |
-| `scopes.bc` | Variables inside `{ }` blocks, and the same name used at different levels |
-| `closures.bc` | Functions that remember their own private variables |
-
 ---
 
-## 8. How broadcast_language works inside
+## 7. How broadcast_language works inside
 
 When you run a broadcast_language program, your code passes through a few stages, like a product on an assembly line. Each stage has one job and hands its result to the next.
 
@@ -693,7 +550,7 @@ C does not have a built-in way to "throw" an error from deep inside the program 
 
 ---
 
-## 9. The source code, file by file
+## 8. The source code, file by file
 
 All source code is in the `src` folder. Each `.h` file (header) describes what a part offers; the `.c` file with the same name contains the actual code. Every file starts with a comment explaining its job.
 
@@ -715,236 +572,39 @@ Other files:
 |---|---|
 | `CMakeLists.txt` | Instructions for building the program with CMake, on Windows, Mac or Linux. |
 | `tests/run_tests.sh` | Runs every sample program and checks the output. |
-| `docs/code-guide.md` | A longer, more technical walk-through of every file. |
-| `docs/evaluation.md` | The full evaluation against the language criteria. |
+| `docs/data-structures.md` | Every data structure and every variable inside it, explained. |
 
 ---
 
-## 10. Every data structure and its variables
+## 9. Every data structure and its variables
 
-C does not have classes. Instead it has **structures** (`struct`): a group of variables kept together under one name, which is what a class's variables are. This section describes every structure in broadcast_language and every variable inside it. The same descriptions are written as comments next to each variable in the source code.
+C does not have classes. Instead it has **structures** (`struct`): a group of variables kept together under one name, which is what a class's variables are. Every variable inside every structure is described in two places: as a comment next to it in the source code, and in plain words in **[docs/data-structures.md](docs/data-structures.md)**.
 
-A few words that come up often:
-
-- **slot**: one space in a list that can hold one item
-- **allocated slots** (`capacity`): how many spaces have been made ready; when they fill up, the list is made bigger
-- **pointer**: a variable that holds the location of something else, so it can be found
-
-### Tokens and the syntax tree
-
-**`Token`** (`token.h`): one "word" of the code, made by the lexer.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `type` | `TokenType` | What kind of token it is: a number, a name, `+`, `repeat`, and so on. |
-| `lexeme` | `const char*` | The token's actual text from the code. For text in quotes, the text without the quotes. |
-| `length` | `size_t` | How many characters `lexeme` has. |
-| `number` | `double` | The value, if the token is a number. |
-| `line` | `int` | The line the token is on, used in error messages. |
-| `offset` | `size_t` | How far into the code the token starts, so an error's `^` can point at it. |
-
-**`Lexer`** (`lexer.c`): what the lexer keeps track of while splitting the code into tokens.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `source` | `const char*` | The code being read. |
-| `length` | `size_t` | How long the code is. |
-| `start` | `size_t` | Where the token being read now begins. |
-| `current` | `size_t` | The position of the next character to read. |
-| `line` | `int` | The line number it is on now. |
-| `tokens` | `Token*` | The tokens made so far. |
-| `count` | `int` | How many tokens have been made. |
-| `capacity` | `int` | How many allocated slots `tokens` has. |
-
-**`Parser`** (`parser.c`): what the parser keeps track of while checking the grammar.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `tokens` | `const Token*` | The list of tokens from the lexer. The last one marks the end of the file. |
-| `count` | `int` | How many tokens there are. |
-| `current` | `int` | The position of the next token to look at. |
-
-**`Expr`** (`ast.h`): one piece of the syntax tree that produces a value, such as `2 + 3`, `x`, or `area(5, 3)`. Different kinds of pieces use different variables.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `kind` | `ExprKind` | What kind of piece this is: a number, text, a variable, an operation, a function call, and so on. It decides which of the variables below are used. |
-| `line` | `int` | The line it came from, for error messages. |
-| `number` | `double` | The value, for a number. |
-| `boolean` | `bool` | The value, for `affirm` or `negative`. |
-| `text` | `const char*` | The text, for text in quotes; or the variable's name, for a variable. |
-| `textLength` | `size_t` | How long `text` is. |
-| `operatorType` | `TokenType` | Which operator, for an operation such as `+`, `<` or `and`. |
-| `left` | `Expr*` | The left side of an operation, the value being stored, or the function being called. |
-| `right` | `Expr*` | The right side of an operation. |
-| `arguments` | `Expr**` | The inputs given to a function call. |
-| `argumentCount` | `int` | How many inputs were given. |
-
-**`Stmt`** (`ast.h`): one statement (instruction) in the syntax tree, such as `broadcast`, `assign`, `when`, `repeat` or a function definition.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `kind` | `StmtKind` | What kind of statement this is. It decides which of the variables below are used. |
-| `line` | `int` | The line it came from, for error messages. |
-| `name` | `const char*` | The name being created, for `assign` and `protocol`. |
-| `expression` | `Expr*` | The value used by the statement: what to print, the starting value for `assign`, the condition for `when` and `repeat`, or what to `report`. Can be empty. |
-| `body` | `Stmt**` | The statements inside a `{ }` block or a function. |
-| `bodyCount` | `int` | How many statements are in `body`. |
-| `thenBranch` | `Stmt*` | What to do when an `when` is true, or the code a `repeat` repeats. |
-| `elseBranch` | `Stmt*` | What to do when an `when` is false. Empty if there is no `otherwise`. |
-| `parameters` | `const char**` | The names of a function's inputs (parameters). |
-| `parameterCount` | `int` | How many inputs the function takes. |
-
-**`Program`** (`ast.h`): a whole parsed program.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `statements` | `Stmt**` | All the top-level statements, in order. |
-| `count` | `int` | How many statements there are. |
-
-### Values
-
-**`Value`** (`value.h`): any single value in broadcast_language: a number, true/false, nil, text or a function.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `type` | `ValueType` | Which kind of value it is: nil, number, true/false, or an object (text or a function). |
-| `as.number` | `double` | The number, if it is a number. |
-| `as.boolean` | `bool` | `affirm` or `negative`, if it is a true/false value. |
-| `as.object` | `Obj*` | Where to find the object, if it is text or a function. |
-
-(`as` holds only one of its three variables at a time, the one that matches `type`. This is called a `union` in C, and it saves memory.)
-
-**`Obj`** (`value.h`): the shared header at the start of every object (text, scope or function).
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `type` | `ObjType` | Which kind of object it is. |
-| `next` | `Obj*` | The next object on the list of all objects, which is used to free them all at the end. |
-
-**`ObjString`** (`value.h`): a piece of text.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `object` | `Obj` | The shared object header. |
-| `length` | `size_t` | How many characters the text has. |
-| `characters` | `char[]` | The characters themselves. |
-
-**`TableEntry`** (`value.h`): one name-and-value pair in a lookup table.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `key` | `const char*` | The name, such as a variable name. Empty means this slot is free. |
-| `hash` | `uint32_t` | A number worked out from the name, used to find it quickly. It is saved so it never has to be worked out again. |
-| `value` | `Value` | The value stored under that name. |
-
-**`Table`** (`value.h`): a lookup table that finds a value by its name quickly. Used to store variables.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `entries` | `TableEntry*` | The slots holding the name-and-value pairs. |
-| `count` | `int` | How many slots are in use. |
-| `capacity` | `int` | How many slots there are in total. |
-
-### Values used by the interpreter
-
-**`ObjEnv`** (`value.h`): a **scope**, meaning one level of variables, such as the variables inside one `{ }` block or one function call.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `object` | `Obj` | The shared object header. |
-| `parent` | `ObjEnv*` | The scope around this one. If a name is not found here, broadcast_language looks there next. Empty for the outermost (global) scope. |
-| `variables` | `Table` | The variables made in this scope, by name. |
-| `captured` | `bool` | True once a function needs to remember this scope. Then it is kept until the program ends. |
-
-**`ObjFunction`** (`value.h`): a function, as the interpreter stores it.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `object` | `Obj` | The shared object header. |
-| `declaration` | `const Stmt*` | The function's definition in the tree: its name, inputs and body. |
-| `closure` | `ObjEnv*` | The scope where the function was made. This is how a function remembers the variables around it. |
-
-**`Interpreter`** (`interpreter.h`): everything the interpreter keeps track of while running.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `globals` | `ObjEnv*` | The outermost scope, which lasts for the whole session. |
-| `environment` | `ObjEnv*` | The scope being used right now. |
-| `live` | `ObjEnv**` | The scopes of every block and function call still running, so they can be cleaned up if an error happens. |
-| `liveCount` | `int` | How many scopes are in `live`. |
-| `liveCapacity` | `int` | How many allocated slots `live` has. |
-| `callDepth` | `int` | How many function calls are running inside each other, to catch a function that calls itself forever. |
-| `returnValue` | `Value` | The value a `report` statement is sending back. |
-
-### Errors, memory and the program itself
-
-**`ErrorState`** (`errors.h`): the details of the most recent error.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `jumpBuffer` | `jmp_buf` | The safe return point that the error jumps back to (see Section 8). |
-| `kind` | `ErrorKind` | What kind of error it is: syntax or runtime. |
-| `line` | `int` | The line the error is on. |
-| `offset` | `long` | The exact position of the mistake, for the `^` marker. `-1` when only the line is known. |
-| `message` | `char[512]` | The error message in words. |
-
-**`Block`** (`arena.c`): one large piece of memory in the arena.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `next` | `Block*` | The block made before this one. All blocks are linked in a chain so they can be freed together. |
-| `used` | `size_t` | How much of this block has been handed out. |
-| `size` | `size_t` | How much space this block has in total. |
-| `align` | `union` | Not used to store anything. It makes sure the memory after it is lined up correctly for any kind of value. |
-
-**`PtrVec`** (`arena.h`): a list that grows as items are added. The parser uses it to collect statements, inputs and parameters.
-
-| Variable | Type | What it holds |
-|---|---|---|
-| `items` | `void**` | The items, in the order they were added. |
-| `count` | `int` | How many items there are. |
-| `capacity` | `int` | How many allocated slots `items` has. |
+| Part | Structures |
+|---|---|
+| Tokens and the syntax tree | `Token`, `Lexer`, `Parser`, `Expr`, `Stmt`, `Program` |
+| Values | `Value`, `Obj`, `ObjString`, `TableEntry`, `Table` |
+| Used by the interpreter | `ObjEnv` (a scope), `ObjFunction`, `Interpreter` |
+| Errors and memory | `ErrorState`, `Block`, `PtrVec` |
 
 ---
 
-## 11. How broadcast_language meets the language evaluation criteria
+## 10. How broadcast_language meets the language evaluation criteria
 
-Programming languages are usually judged on four main things. Here is how broadcast_language does on each, in short. The full version, with more examples, is in `docs/evaluation.md`.
+Programming languages are usually judged on four main things. Here is how broadcast_language does on each:
 
-### Readability: is the code easy to read?
+| Criterion | How broadcast_language does |
+|---|---|
+| **Readability** | Only 12 keywords and one kind of number. The words say what they do (`assign` makes a variable, `broadcast` prints, `protocol` makes a function). Blocks are always in `{ }`. |
+| **Writability** | Any value can be printed, stored, compared, passed to a function or returned from one. Text joins with `+` and no conversion step. Interactive mode lets you try ideas one line at a time. |
+| **Reliability** | Types are checked, variables must be created with `assign` first, and the number of function inputs is checked. Format mistakes are caught before anything runs, and the program never crashes. |
+| **Cost** | Easy to learn (it looks like C, Java and JavaScript), standard C only with no extra libraries, and every file, function and variable in the source code is explained. |
 
-- **It's small.** There are only 12 keywords and one kind of number, so there is little to learn and nothing confusing.
-- **One way to do each thing.** For example, to add 1 to a variable there is only `x = x + 1`, not three different ways.
-- **The words say what they do.** `assign` makes a variable, `broadcast` prints, `protocol` makes a function.
-- **Real true and false values.** Conditions use `affirm` and `negative`, not `1` and `0`.
-- **Blocks are always in `{ }`,** so it is always clear which code belongs to a `when` or a loop.
-
-### Writability: is the code easy to write?
-
-- **The pieces fit together freely.** Any value can be printed, stored, compared, passed to a function, or returned from one.
-- **Functions** let you name a piece of work once and reuse it, including recursion.
-- **Text joins easily:** `broadcast "Total: " + total;` needs no extra conversion step.
-- **Interactive mode** lets you try ideas one line at a time.
-
-### Reliability: does the code do what you expect?
-
-- **Types are checked.** You cannot subtract a number from text, and broadcast_language says so instead of giving a strange answer.
-- **Variables must be created first** with `assign`, which catches spelling mistakes.
-- **Function inputs are counted.** Giving a function the wrong number of inputs is an error.
-- **Every mistake is reported clearly** with the line and the exact spot, and the program never crashes.
-- **Format mistakes are caught before running,** so a program never stops halfway because of a typo.
-
-### Cost: how much does it take to learn, build and run?
-
-- **Easy to learn:** it looks like C, Java and JavaScript, and `help` lists everything.
-- **Easy to build:** standard C only, with no extra libraries to install. It builds on Windows, Mac and Linux.
-- **Fast to start:** a program starts running in a fraction of a second.
-- **Easy to maintain:** every file, function and variable in the source code is explained.
+The reasons behind the themed keywords are explained in `WHY_KEYWORD_THEME.md`.
 
 ---
 
-## 12. Testing
+## 11. Testing
 
 We tested broadcast_language in three ways.
 
@@ -954,13 +614,13 @@ We tested broadcast_language in three ways.
 8 passed, 0 failed
 ```
 
-This proves that every sample gives the correct output. To run it (on Windows, use Git Bash):
+This proves that every sample gives the correct output. To run it, give the script the program from Step 1:
 
-```
-tests/run_tests.sh build/Release/broadcast_language.exe
-```
+| Linux or Mac | Windows (in Git Bash) |
+|---|---|
+| `bash tests/run_tests.sh ./broadcast_language` | `bash tests/run_tests.sh build/Release/broadcast_language.exe` |
 
-**2. Mistake testing.** We typed in every kind of wrong input we could think of (the tables in Section 6) and checked that each one gives a clear message and never crashes.
+**2. Mistake testing.** We typed in every kind of wrong input we could think of (the tables in Section 5) and checked that each one gives a clear message and never crashes.
 
 **3. Edge cases.** We also checked:
 
@@ -976,7 +636,7 @@ tests/run_tests.sh build/Release/broadcast_language.exe
 
 ---
 
-## 13. Libraries we used
+## 12. Libraries we used
 
 The guidelines allow libraries, as long as we understand them. **We did not use any outside libraries.** Everything (the lexer, parser, interpreter, memory arena and lookup table) was written by us. We only used parts of the C standard library, which comes with every C compiler:
 
@@ -987,13 +647,13 @@ The guidelines allow libraries, as long as we understand them. **We did not use 
 | `string.h` | Copying and comparing text (`memcpy`, `strcmp`, `strlen`) |
 | `math.h` | The remainder of decimal numbers (`fmod`), and rounding checks for printing numbers (`floor`, `fabs`) |
 | `ctype.h` | Telling whether a character is a letter or a digit |
-| `setjmp.h` | Jumping back to a safe point when an error happens (Section 8) |
+| `setjmp.h` | Jumping back to a safe point when an error happens (Section 7) |
 | `stdarg.h` | Building error messages that include details, such as the variable's name |
 | `stdbool.h`, `stddef.h`, `stdint.h` | Basic types such as `bool`, `size_t` and `uint32_t` |
 
 ---
 
-## 14. Limits and future plans
+## 13. Limits and future plans
 
 No language is perfect, and here are broadcast_language's limits:
 
