@@ -97,7 +97,7 @@ mylang is dynamically typed, so types are checked while the program runs, at the
 
 ```
 broadcast "a" - 1;      // [line 1] Runtime error: Operands must be numbers.
-broadcast affirm + 1;     // [line 1] Runtime error: Operands of '+' must be two numbers or include a string.
+broadcast affirm + 1;   // [line 1] Runtime error: Operands of '+' must be two numbers or include a string.
 broadcast 5(3);         // [line 1] Runtime error: Can only call functions.
 ```
 
@@ -105,7 +105,7 @@ Function calls are checked too. A wrong number of arguments is an error, never s
 
 ```
 protocol f(a) { report a; }
-broadcast f(1, 2);      // [line 2] Runtime error: Expected 1 arguments but got 2.
+broadcast f(1, 2);      // [line 2] Runtime error: Expected 1 argument but got 2.
 ```
 
 Variables must be declared with `assign` before use, which catches typos in names:

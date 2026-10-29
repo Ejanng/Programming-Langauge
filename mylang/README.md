@@ -84,9 +84,9 @@ mylang> exit
 
 ```
 // comments run to the end of the line
-assign x = 10;                      // variables
+assign x = 10;                         // variables
 x = x + 1;
-broadcast "x is " + x;               // string + anything joins as text
+broadcast "x is " + x;                 // string + anything joins as text
 
 protocol square(n) { report n * n; }   // functions
 broadcast square(7);
