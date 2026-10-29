@@ -10,8 +10,8 @@ All commands assume the program was built as in the README. On Windows with Visu
 
 | Requirement (from the guidelines) | Done | Evidence |
 |---|---|---|
-| Simple arithmetic with (at least) integer values | Yes | `./mylang examples/arithmetic.rene`: `+ - * / %`, precedence, parentheses, negatives, whole numbers exact up to 9,007,199,254,740,992 |
-| Handles errors like incorrect format | Yes | `./mylang examples/error_syntax.rene`, plus the error table in [evaluation.md](evaluation.md#exception-handling) |
+| Simple arithmetic with (at least) integer values | Yes | `./mylang examples/arithmetic.bc`: `+ - * / %`, precedence, parentheses, negatives, whole numbers exact up to 9,007,199,254,740,992 |
+| Handles errors like incorrect format | Yes | `./mylang examples/error_syntax.bc`, plus the error table in [evaluation.md](evaluation.md#exception-handling) |
 | Presents correct output | Yes | `tests/run_tests.sh` checks 8 example programs against their expected output: `8 passed, 0 failed` |
 | Follows the PL evaluation criteria | Yes | [evaluation.md](evaluation.md) |
 | Proper documentation of the source code | Yes | See the Documentation row below |
@@ -62,7 +62,7 @@ C has no classes. The equivalent of a class is a `struct`, and its "class variab
 Advanced features to point out, all beyond simple arithmetic:
 
 1. **A themed keyword set** ("Team Communication & Signal": `assign`, `broadcast`, `protocol`, `report`, ...), used consistently in the code, the error messages and the printed values (`affirm`, `negative`, `silence`).
-2. **Closures and first-class functions.** A function remembers the scope it was created in, so it can keep private state (`examples/closures.rene`).
+2. **Closures and first-class functions.** A function remembers the scope it was created in, so it can keep private state (`examples/closures.bc`).
 3. **Block scopes and shadowing,** with each scope freed as soon as it ends unless a function still needs it.
 4. **Precise error reporting** with the source line and a `^` under the exact token, without crashing.
 5. **An interactive mode (REPL)** with a `help` command, and variables that persist between lines.
@@ -76,7 +76,7 @@ About 10 minutes. Practice it once. Each step lists what to run and what to say.
 
 2. **The pipeline (2 min).** Show the table in the README. "Source text goes through the lexer, which makes tokens; the parser, which builds a syntax tree using our grammar; then the interpreter walks the tree and runs each node."
 
-3. **Arithmetic (1 min).** Run `./mylang examples/arithmetic.rene`. Point out `2 + 3 * 4` giving `14` and `(2 + 3) * 4` giving `20`. "Precedence comes from the grammar: `term` handles + and -, and calls `factor`, which handles * and /, so * binds tighter."
+3. **Arithmetic (1 min).** Run `./mylang examples/arithmetic.bc`. Point out `2 + 3 * 4` giving `14` and `(2 + 3) * 4` giving `20`. "Precedence comes from the grammar: `term` handles + and -, and calls `factor`, which handles * and /, so * binds tighter."
 
 4. **Interactive mode (1 min).** Run `./mylang`, type `help`, then:
 
@@ -96,7 +96,7 @@ About 10 minutes. Practice it once. Each step lists what to run and what to say.
 
    "Badly formatted input is caught by the parser before anything runs, and the caret shows the exact token. Runtime errors like division by zero stop cleanly with the line number, and the session continues."
 
-6. **Functions and closures (2 min).** Run `./mylang examples/closures.rene`. "Each counter keeps its own `count`, because a function remembers the scope it was made in." Then run `tests/run_tests.sh`: "every example's output is checked against the expected output."
+6. **Functions and closures (2 min).** Run `./mylang examples/closures.bc`. "Each counter keeps its own `count`, because a function remembers the scope it was made in." Then run `tests/run_tests.sh`: "every example's output is checked against the expected output."
 
 7. **Evaluation criteria (1 min).** Open [evaluation.md](evaluation.md) and name one point for each criterion. Readability: 12 keywords. Writability: functions and closures. Reliability: type checks with clear errors. Cost: no dependencies, builds anywhere.
 
@@ -115,7 +115,7 @@ With `setjmp`/`longjmp` (`src/errors.h`). Before a phase runs, `setjmp` marks a 
 All numbers are 64-bit floating point, as in JavaScript. Every whole number up to 2^53 is stored and printed exactly, which covers the integer requirement. Division can give a fraction: `7 / 2` is `3.5`.
 
 **What is a closure?**
-A function together with the variables it captured from where it was defined. `examples/closures.rene` makes two counters that each keep their own `count`. The function object stores a pointer to the scope it was created in, and that scope is kept alive as long as the function needs it.
+A function together with the variables it captured from where it was defined. `examples/closures.bc` makes two counters that each keep their own `count`. The function object stores a pointer to the scope it was created in, and that scope is kept alive as long as the function needs it.
 
 **How is memory managed?**
 The tokens and syntax tree come from an arena that is freed all at once at exit. Runtime objects (strings, functions) go on one list and are also freed at exit. Scopes are freed as soon as their block ends, unless a function captured them. There is no garbage collector yet.

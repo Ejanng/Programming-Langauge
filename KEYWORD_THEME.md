@@ -69,7 +69,7 @@ when (ready and target == silence) {
 
 ## Things to consider before choosing
 
-1. **Keywords become reserved.** Once a word is a keyword it can no longer be used as a variable or function name. I checked the current `examples/*.rene` code: only **`copy`** is already used as a variable name, so it is *not* recommended for `true`. Every recommended word above is free.
+1. **Keywords become reserved.** Once a word is a keyword it can no longer be used as a variable or function name. I checked the current `examples/*.bc` code: only **`copy`** is already used as a variable name, so it is *not* recommended for `true`. Every recommended word above is free.
 2. **Length vs. typing.** `broadcast` and `protocol` are long. They read well, but they cost more typing than `print` and `fn` (writability). Shorter options from the alternatives column: `say`, `drill`, `tag`.
 3. **No spaces or symbols.** A keyword must be one word of letters, digits or `_` (for example `on_cue`, not `on cue`).
 4. **Case matters.** `Signal` and `signal` would be different words. Lowercase is recommended to match the rest of the language.
@@ -85,7 +85,7 @@ When you decide, these are the places that change (details in [CUSTOMIZING.md](C
 | `mylang/src/lexer.c`, keyword table in `scanIdentifier()` | Swap the quoted words (the `TOK_...` names stay the same) |
 | `mylang/src/parser.c` | Error messages that quote a keyword |
 | `mylang/src/main.c` | `REPL_HELP` examples |
-| `mylang/examples/*.rene` (+ `.expected` if output changes) | Rewrite the programs with the new words |
+| `mylang/examples/*.bc` (+ `.expected` if output changes) | Rewrite the programs with the new words |
 | `mylang/README.md`, `mylang/DOCUMENTATION.md`, `mylang/docs/*.md` | Keyword tables and code samples |
 
 Then rebuild and run `bash tests/run_tests.sh build/mylang`. All 8 tests should still pass.

@@ -1,4 +1,4 @@
-// Entry point: `mylang script.rene` runs a file, `mylang` alone starts a REPL.
+// Entry point: `mylang script.bc` runs a file, `mylang` alone starts a REPL.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,9 +11,9 @@
 #define MYLANG_VERSION "1.0"
 
 static const char* const USAGE =
-    "Usage: mylang [script.rene]\n"
-    "  script.rene  run this file (with no file, start the interactive REPL)\n"
-    "  --help       show this message\n";
+    "Usage: mylang [script.bc]\n"
+    "  script.bc  run this file (with no file, start the interactive REPL)\n"
+    "  --help     show this message\n";
 
 static const char* const REPL_HELP =
     "Statements end with ';' (the REPL adds it for you on a single line).\n"

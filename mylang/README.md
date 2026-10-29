@@ -23,8 +23,8 @@ How the project meets each requirement in the guidelines:
 
 | Requirement | Where it is met |
 |---|---|
-| Simple arithmetic on (at least) integer values | `+ - * / %`, parentheses and unary `-` with the usual precedence; whole numbers up to 2^53 are exact. See `examples/arithmetic.rene`. |
-| Handles errors such as incorrect format | Lexer, parser and runtime errors all print `[line N] Kind error: message` and never crash. See `examples/error_syntax.rene`, `examples/error_runtime.rene`, and the error table in [docs/evaluation.md](docs/evaluation.md#exception-handling). |
+| Simple arithmetic on (at least) integer values | `+ - * / %`, parentheses and unary `-` with the usual precedence; whole numbers up to 2^53 are exact. See `examples/arithmetic.bc`. |
+| Handles errors such as incorrect format | Lexer, parser and runtime errors all print `[line N] Kind error: message` and never crash. See `examples/error_syntax.bc`, `examples/error_runtime.bc`, and the error table in [docs/evaluation.md](docs/evaluation.md#exception-handling). |
 | Presents correct output | `tests/run_tests.sh` checks every example's output against its `.expected` file. |
 | Follows the PL evaluation criteria | [docs/evaluation.md](docs/evaluation.md) |
 | Proper documentation of the source code | Every source file starts with a comment saying what it does, every struct field is described, and [docs/code-guide.md](docs/code-guide.md) explains each file. |
@@ -36,10 +36,10 @@ With GCC or Clang (Linux, macOS, or MinGW/MSYS2 on Windows):
 
 ```
 gcc -std=c11 -O2 -Wall -Wextra src/*.c -lm -o mylang
-./mylang examples/hello.rene   # run a file
-./mylang                       # start the REPL
-./mylang --help                # list the options
-tests/run_tests.sh             # run every example and compare with its .expected file
+./mylang examples/hello.bc   # run a file
+./mylang                     # start the REPL
+./mylang --help              # list the options
+tests/run_tests.sh           # run every example and compare with its .expected file
 ```
 
 With CMake, on any platform including Visual Studio on Windows:
@@ -47,16 +47,16 @@ With CMake, on any platform including Visual Studio on Windows:
 ```
 cmake -B build
 cmake --build build --config Release
-build/Release/mylang.exe examples/arithmetic.rene   # Visual Studio puts the program here
-build/mylang examples/arithmetic.rene               # other generators put it here
-ctest --test-dir build -C Release                    # runs tests/run_tests.sh (needs bash, e.g. Git Bash)
+build/Release/mylang.exe examples/arithmetic.bc   # Visual Studio puts the program here
+build/mylang examples/arithmetic.bc               # other generators put it here
+ctest --test-dir build -C Release                 # runs tests/run_tests.sh (needs bash, e.g. Git Bash)
 ```
 
 Directly with Microsoft Visual C++, from a "Developer Command Prompt for VS":
 
 ```
 cl /std:c11 /O2 /D_CRT_SECURE_NO_WARNINGS src\*.c /Fe:mylang.exe
-mylang.exe examples\arithmetic.rene
+mylang.exe examples\arithmetic.bc
 ```
 
 ## A short session

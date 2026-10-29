@@ -2,7 +2,7 @@
 
 This document checks mylang against the standard criteria for evaluating programming languages: **readability**, **writability**, **reliability** and **cost**, plus portability and generality. Each point is backed by real mylang code and the output it produces, so every claim can be checked by running the interpreter. Weak spots are listed too, because a fair evaluation covers both sides.
 
-Every example below runs as written with `mylang file.rene`, which runs the program on mylang's tree-walking interpreter.
+Every example below runs as written with `mylang file.bc`, which runs the program on mylang's tree-walking interpreter.
 
 ## Summary
 
@@ -12,7 +12,7 @@ Every example below runs as written with `mylang file.rene`, which runs the prog
 | | Orthogonality | Every expression works in every expression position; functions are ordinary values |
 | | Data types | Real `affirm`/`negative` and `silence` instead of 1/0 or magic values |
 | | Syntax design | Keywords say what they do (`assign`, `protocol`, `broadcast`); `{ }` closes every block |
-| Writability | Simplicity and orthogonality | A few constructs combine freely (see the `power` function in `examples/arithmetic.rene`) |
+| Writability | Simplicity and orthogonality | A few constructs combine freely (see the `power` function in `examples/arithmetic.bc`) |
 | | Support for abstraction | Functions, recursion and closures |
 | | Expressivity | Operators with conventional precedence, `+` that joins text, REPL for quick experiments |
 | Reliability | Type checking | Every operator checks its operand types and stops with a clear message |
@@ -34,7 +34,7 @@ The language avoids **feature multiplicity** (several ways to do the same thing)
 A small set of constructs combine in every way that makes sense:
 
 - Any expression can go anywhere an expression is allowed: `broadcast`, `assign`, conditions, arguments and `report`.
-- Functions are values. They can be stored in variables, passed as arguments and returned from other functions (`examples/closures.rene`).
+- Functions are values. They can be stored in variables, passed as arguments and returned from other functions (`examples/closures.bc`).
 - Blocks `{ }` work the same after `when`, `otherwise`, `repeat` and `protocol`, and alone to make a new scope.
 
 ```
@@ -80,8 +80,8 @@ broadcast "2^10 = " + power(2, 10);   // 2^10 = 1024
 
 ### Support for abstraction
 
-- **Process abstraction:** functions with parameters and return values, including recursion (`examples/fib.rene`).
-- **Closures:** a function remembers the variables around it, so state can be hidden inside it (`examples/closures.rene` builds a counter this way).
+- **Process abstraction:** functions with parameters and return values, including recursion (`examples/fib.bc`).
+- **Closures:** a function remembers the variables around it, so state can be hidden inside it (`examples/closures.bc` builds a counter this way).
 
 ### Expressivity
 
@@ -115,7 +115,7 @@ assign total = 5;
 broadcast totl;         // [line 2] Runtime error: Undefined variable 'totl'.
 ```
 
-A variable declared inside a block is not visible after the block ends, which keeps names from leaking (`examples/scopes.rene`).
+A variable declared inside a block is not visible after the block ends, which keeps names from leaking (`examples/scopes.bc`).
 
 ### Exception handling
 
@@ -137,13 +137,13 @@ The language does not have `try`/`catch`. Instead, the implementation catches ev
 | Runtime | `broadcast 5 % 0;` | `[line 1] Runtime error: Division by zero.` |
 | Runtime | endless recursion | `[line 1] Runtime error: Stack overflow: too many nested calls.` |
 
-Badly formatted programs are rejected **before anything runs**: a syntax error anywhere in a file means no line of it executes (`examples/error_syntax.rene`). The process exit code tells scripts what happened: `0` success, `65` syntax error, `70` runtime error, `74` file not found, `64` bad command-line usage.
+Badly formatted programs are rejected **before anything runs**: a syntax error anywhere in a file means no line of it executes (`examples/error_syntax.bc`). The process exit code tells scripts what happened: `0` success, `65` syntax error, `70` runtime error, `74` file not found, `64` bad command-line usage.
 
 In the REPL, an error is printed and the session continues with every earlier variable still defined.
 
 ### Restricted aliasing
 
-There are no pointers, references or arrays, so two names cannot secretly refer to the same storage and change each other. The one deliberate exception is a closure: a function that captures a variable shares it with the scope it came from, which is exactly what makes the counter in `examples/closures.rene` work.
+There are no pointers, references or arrays, so two names cannot secretly refer to the same storage and change each other. The one deliberate exception is a closure: a function that captures a variable shares it with the scope it came from, which is exactly what makes the counter in `examples/closures.bc` work.
 
 ### Correct arithmetic output
 

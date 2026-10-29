@@ -70,8 +70,8 @@ The project guidelines list five general requirements. This table shows each one
 
 | Requirement | How we met it | Where to see it |
 |---|---|---|
-| Process simple arithmetic, at least with integers | mylang supports `+`, `-`, `*`, `/` and `%`, parentheses, negative numbers, and the normal order of operations. Whole numbers stay exact up to 9,007,199,254,740,992. | Section 5, and `examples/arithmetic.rene` |
-| Handle errors like incorrect format | Every mistake is caught and explained in plain words, with the line number, the line of code, and a `^` pointing at the problem. The program never crashes. | Section 6, and `examples/error_syntax.rene` |
+| Process simple arithmetic, at least with integers | mylang supports `+`, `-`, `*`, `/` and `%`, parentheses, negative numbers, and the normal order of operations. Whole numbers stay exact up to 9,007,199,254,740,992. | Section 5, and `examples/arithmetic.bc` |
+| Handle errors like incorrect format | Every mistake is caught and explained in plain words, with the line number, the line of code, and a `^` pointing at the problem. The program never crashes. | Section 6, and `examples/error_syntax.bc` |
 | Present correct output | We wrote down the correct output for every sample program, and an automatic test checks that mylang gives exactly that output. All 8 checks pass. | Sections 7 and 12 |
 | Follow the PL evaluation criteria | We checked mylang against readability, writability, reliability and cost. | Section 11, and `docs/evaluation.md` |
 | Proper documentation of the source code | Every source file starts with a note explaining it. Every function and every variable inside every data structure has a comment. This document explains them all in simple words. | Sections 9 and 10 |
@@ -88,12 +88,12 @@ mylang/
 ├── README.md           a short overview
 ├── CMakeLists.txt      build instructions for CMake
 ├── src/                the source code of the language (written in C)
-├── examples/           sample programs (.rene) and their correct output (.expected)
+├── examples/           sample programs (.bc) and their correct output (.expected)
 ├── tests/              the automatic test script
 └── docs/               extra guides
 ```
 
-mylang programs are saved in files ending in `.rene`.
+mylang programs are saved in files ending in `.bc`.
 
 ### Step 1: Build the program
 
@@ -140,7 +140,7 @@ Now type any line and press Enter. In interactive mode you can leave out the `;`
 **To run a file**, put its name after the program:
 
 ```
-.\build\Release\mylang.exe examples\arithmetic.rene
+.\build\Release\mylang.exe examples\arithmetic.bc
 ```
 
 **Other option:**
@@ -473,7 +473,7 @@ When a file finishes, mylang reports a number to the system, so other programs a
 
 The `examples` folder has 8 sample programs. Next to each one is a `.expected` file holding its correct output. Here are the main ones.
 
-### `arithmetic.rene`: integer arithmetic
+### `arithmetic.bc`: integer arithmetic
 
 ```
 broadcast 7 + 5;          // 12
@@ -531,7 +531,7 @@ perimeter = 38
 3^5 = 243
 ```
 
-### `hello.rene`: the basics
+### `hello.bc`: the basics
 
 ```
 // The first program in the language.
@@ -549,7 +549,7 @@ Welcome to mylang!
 7
 ```
 
-### `fib.rene`: loops and recursion
+### `fib.bc`: loops and recursion
 
 This prints the Fibonacci numbers, where each number is the sum of the two before it.
 
@@ -582,7 +582,7 @@ fib(9) = 34
 fib(10) = 55
 ```
 
-### `error_syntax.rene`: a format mistake
+### `error_syntax.bc`: a format mistake
 
 ```
 broadcast 1 + 2;
@@ -600,7 +600,7 @@ broadcast "never printed";
 
 Notice that even `broadcast 1 + 2;` did not run. mylang found the mistake first and refused to start.
 
-### `error_runtime.rene`: a mistake while running
+### `error_runtime.bc`: a mistake while running
 
 Output:
 
@@ -616,9 +616,9 @@ Here the first line ran and printed `before`, then mylang stopped at the unknown
 
 | File | What it shows |
 |---|---|
-| `logic.rene` | `and`, `or`, `!`, and which values count as true or false |
-| `scopes.rene` | Variables inside `{ }` blocks, and the same name used at different levels |
-| `closures.rene` | Functions that remember their own private variables |
+| `logic.bc` | `and`, `or`, `!`, and which values count as true or false |
+| `scopes.bc` | Variables inside `{ }` blocks, and the same name used at different levels |
+| `closures.bc` | Functions that remember their own private variables |
 
 ---
 

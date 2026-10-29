@@ -9,7 +9,7 @@ This guide walks through every file in the project, explains what it does, and e
 A programming language implementation turns text into behavior. Your program goes through these stages:
 
 ```
- hello.rene (text)
+ hello.bc (text)
       │
       ▼
  ┌─────────┐   tokens    ┌─────────┐    AST     ┌─────────────────────────────┐
@@ -54,7 +54,7 @@ repeat (x > 0) { x = x - 1; }
 | `src/main.c` | driver | Command line + REPL |
 | `CMakeLists.txt` | build | Build config |
 | `tests/run_tests.sh` | tests | Runs the examples and checks their output |
-| `examples/*.rene` | tests | Sample programs + `.expected` output |
+| `examples/*.bc` | tests | Sample programs + `.expected` output |
 
 ---
 
@@ -273,7 +273,7 @@ Each is a big `switch` on the node's `kind`.
 
 - Parses the command line: a file path, or `--help`. Anything else prints the usage message and exits with code 64.
 - Creates one `Interpreter`, and passes each piece of source to `interpreterRun()`.
-- `runFile()` reads the entire file into a buffer and runs it. **The file extension is never checked**, so `.rene` is just a convention.
+- `runFile()` reads the entire file into a buffer and runs it. **The file extension is never checked**, so `.bc` is just a convention.
 - `repl()` is an interactive loop: show the `mylang>` prompt, read a line, trim it, run it. It auto-adds a `;` if you forget one, so `broadcast 1 + 2` works. Errors are printed but the session continues. `help` prints a short language reference; `exit`, `quit` or end of input ends it.
 - `readLine()` reads one line of any length. It replaces POSIX `getline()`, which Windows does not have.
 - `--help` prints the usage text; an unknown option prints which argument was wrong, then the usage.
@@ -291,20 +291,20 @@ gcc -std=c11 -O2 -Wall -Wextra src/*.c -lm -o mylang
 
 ### `tests/run_tests.sh`
 
-It runs every `examples/*.rene`, captures stdout+stderr, and compares it to the matching `.expected` file, ignoring carriage returns so Windows output matches too. It prints PASS/FAIL per test and a total. With 8 examples, you see `8 passed`.
+It runs every `examples/*.bc`, captures stdout+stderr, and compares it to the matching `.expected` file, ignoring carriage returns so Windows output matches too. It prints PASS/FAIL per test and a total. With 8 examples, you see `8 passed`.
 
 ### `examples/`
 
 | File | What it tests |
 |---|---|
-| `hello.rene` | Basic printing |
-| `arithmetic.rene` | Integer arithmetic: operators, precedence, negatives, large numbers |
-| `fib.rene` | Recursion |
-| `logic.rene` | `and` / `or` / truthiness |
-| `closures.rene` | Functions capturing variables |
-| `scopes.rene` | Nested scopes, shadowing, deep closures |
-| `error_runtime.rene` | A runtime error and its message |
-| `error_syntax.rene` | A badly formatted expression, rejected before anything runs |
+| `hello.bc` | Basic printing |
+| `arithmetic.bc` | Integer arithmetic: operators, precedence, negatives, large numbers |
+| `fib.bc` | Recursion |
+| `logic.bc` | `and` / `or` / truthiness |
+| `closures.bc` | Functions capturing variables |
+| `scopes.bc` | Nested scopes, shadowing, deep closures |
+| `error_runtime.bc` | A runtime error and its message |
+| `error_syntax.bc` | A badly formatted expression, rejected before anything runs |
 
 ---
 

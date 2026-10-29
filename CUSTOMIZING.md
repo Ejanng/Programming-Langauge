@@ -23,7 +23,7 @@ Then update the places that mention the old word:
 - **Error messages** in `src/parser.c` that quote a keyword, for example `"Expect variable name after 'assign'."` and `"Expect function name after 'protocol'."`, plus `"Can't report from top-level code."` in `src/interpreter.c`
 - **Printed values**: if you rename `affirm`, `negative` or `silence`, also change what `broadcast` shows for them in `valueToString()` in `src/value.c` (and `<protocol name>` for functions, in the same function)
 - **REPL help text**: `REPL_HELP` in `src/main.c`
-- **Example programs**: `examples/*.rene`, and any `.expected` file whose output changed
+- **Example programs**: `examples/*.bc`, and any `.expected` file whose output changed
 - **Docs**: the keyword table in `DOCUMENTATION.md` ("Every keyword at a glance") and `docs/evaluation.md`
 
 ## 2. Operator symbols (`+ - * / %`, `==`, `<`, ...)
@@ -47,11 +47,11 @@ Example: changing `case '%':` to `case '#':` makes `#` the remainder operator. T
 | `--help` text | `USAGE` in `src/main.c` |
 | Program (executable) name | `CMakeLists.txt` (`project(...)`, `add_executable(...)` and every `mylang` after it) and the default `./mylang` in `tests/run_tests.sh` |
 
-## 4. File extension (`.rene`)
+## 4. File extension (`.bc`)
 
 The program never checks the extension, so any file name works. Only these depend on it:
 
-- `tests/run_tests.sh`: the `examples/*.rene` loop and the `${src%.rene}` line
+- `tests/run_tests.sh`: the `examples/*.bc` loop and the `${src%.bc}` line
 - the example file names in `examples/`
 - the usage text in `src/main.c` and the docs
 
@@ -84,4 +84,4 @@ bash tests/run_tests.sh build/mylang
 
 On Windows with Visual Studio the program is `build\Release\mylang.exe`.
 
-The tests run every `examples/*.rene` and compare the output with its `.expected` file. If a test fails, the `diff` it prints shows which example or expected output still uses the old word.
+The tests run every `examples/*.bc` and compare the output with its `.expected` file. If a test fails, the `diff` it prints shows which example or expected output still uses the old word.
