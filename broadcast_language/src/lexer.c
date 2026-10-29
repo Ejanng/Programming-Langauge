@@ -35,6 +35,7 @@ static bool match(Lexer* lexer, char expected) {
 static bool isDigit(char character) { return isdigit((unsigned char)character) != 0; }
 static bool isAlpha(char character) { return isalpha((unsigned char)character) != 0 || character == '_'; }
 
+// Callers pass 0 for `offset`; it is filled in here from where the token started.
 static void pushToken(Lexer* lexer, Token token) {
     token.offset = lexer->start;
     lexer->tokens = arenaReserveArray(lexer->tokens, lexer->count, &lexer->capacity, sizeof(Token));
@@ -43,7 +44,7 @@ static void pushToken(Lexer* lexer, Token token) {
 
 static void addToken(Lexer* lexer, TokenType type) {
     size_t length = lexer->current - lexer->start;
-    pushToken(lexer, (Token){type, arenaDuplicateString(lexer->source + lexer->start, length), length, 0, lexer->line});
+    pushToken(lexer, (Token){type, arenaDuplicateString(lexer->source + lexer->start, length), length, 0, lexer->line, 0});
 }
 
 static void scanString(Lexer* lexer) {
@@ -69,7 +70,7 @@ static void scanString(Lexer* lexer) {
         languageErrorAt(ERR_SYNTAX, startLine, (long)lexer->start, "Unterminated string.");
     }
     advance(lexer);  // closing quote
-    pushToken(lexer, (Token){TOK_STRING, arenaDuplicateString(value, length), length, 0, startLine});
+    pushToken(lexer, (Token){TOK_STRING, arenaDuplicateString(value, length), length, 0, startLine, 0});
     free(value);
 }
 
@@ -81,7 +82,7 @@ static void scanNumber(Lexer* lexer) {
     }
     size_t length = lexer->current - lexer->start;
     const char* text = arenaDuplicateString(lexer->source + lexer->start, length);
-    pushToken(lexer, (Token){TOK_NUMBER, text, length, strtod(text, NULL), lexer->line});
+    pushToken(lexer, (Token){TOK_NUMBER, text, length, strtod(text, NULL), lexer->line, 0});
 }
 
 static void scanIdentifier(Lexer* lexer) {
@@ -155,7 +156,7 @@ Token* lex(const char* source, size_t length, int* count) {
         scanToken(&lexer);
     }
     lexer.start = lexer.current;  // the end-of-file token sits just past the last character
-    pushToken(&lexer, (Token){TOK_EOF, "", 0, 0, lexer.line});
+    pushToken(&lexer, (Token){TOK_EOF, "", 0, 0, lexer.line, 0});
     *count = lexer.count;
     return lexer.tokens;
 }

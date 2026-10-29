@@ -45,7 +45,7 @@ C has no classes. The equivalent of a class is a `struct`, and its "class variab
 
 ### Runtime: "executes without errors, excellent user prompts, good use of symbols, spacing in output"
 
-- **Executes without errors:** builds with no warnings under MSVC (`/W3`), and the CMake build turns on `-Wall -Wextra -Wpedantic` for GCC and Clang. No input crashes it: bad syntax, wrong types, division by zero and runaway recursion all produce a message, never a crash.
+- **Executes without errors:** builds with no warnings under GCC with `-Wall -Wextra -Wpedantic` (the flags the CMake build turns on for GCC and Clang) and under MSVC (`/W3`). No input crashes it: bad syntax, wrong types, division by zero and runaway recursion all produce a message, never a crash.
 - **User prompts:** the REPL opens with a banner naming the version, shows a `broadcast_language>` prompt, and has a `help` command that lists every construct with an example. `./broadcast_language --help` lists the command-line options. An unknown option says which argument was wrong.
 - **Symbols and spacing in errors:** every error names its line and kind, shows the source line, and puts a `^` under the exact token for syntax errors:
 
