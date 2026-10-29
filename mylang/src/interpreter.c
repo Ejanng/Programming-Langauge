@@ -1,4 +1,4 @@
-// Stage 3 (default backend): the tree-walking interpreter. It runs the lexer and parser, then
+// Stage 3: the tree-walking interpreter. It runs the lexer and parser, then
 // evaluates the AST node by node, keeping variables in a chain of scopes (ObjEnv).
 #include "interpreter.h"
 
@@ -14,10 +14,10 @@
 
 #define MAX_CALL_DEPTH 1000
 
-static void* heap_array_reserve(void* array, int count, int* cap, size_t elemSize) {
-    if (count < *cap) return array;
-    *cap = *cap < 16 ? 16 : *cap * 2;
-    array = realloc(array, (size_t)*cap * elemSize);
+static void* heapReserveArray(void* array, int count, int* capacity, size_t elementSize) {
+    if (count < *capacity) return array;
+    *capacity = *capacity < 16 ? 16 : *capacity * 2;
+    array = realloc(array, (size_t)*capacity * elementSize);
     if (!array) {
         fputs("Out of memory.\n", stderr);
         exit(EXIT_FAILURE);
@@ -25,52 +25,52 @@ static void* heap_array_reserve(void* array, int count, int* cap, size_t elemSiz
     return array;
 }
 
-static Value evaluate(Interpreter* in, const Expr* e);
-static bool execute(Interpreter* in, const Stmt* s);
+static Value evaluate(Interpreter* interpreter, const Expr* expression);
+static bool execute(Interpreter* interpreter, const Stmt* statement);
 
 // ---- statements ----
 
 // Runs `count` statements in `scope`, then frees the scope unless a function captured it.
-// Returns true if one of the statements executed a `return`.
-// The previous scope is restored when the block ends (after a runtime error, interpreter_run resets it).
-static bool execute_block(Interpreter* in, Stmt* const* stmts, int count, ObjEnv* scope) {
-    ObjEnv* saved = in->env;
-    in->env = scope;
-    in->live = heap_array_reserve(in->live, in->liveCount, &in->liveCap, sizeof(ObjEnv*));
-    in->live[in->liveCount++] = scope;
+// Returns true if one of the statements executed a `report`.
+// The previous scope is restored when the block ends (after a runtime error, interpreterRun resets it).
+static bool executeBlock(Interpreter* interpreter, Stmt* const* statements, int count, ObjEnv* scope) {
+    ObjEnv* saved = interpreter->environment;
+    interpreter->environment = scope;
+    interpreter->live = heapReserveArray(interpreter->live, interpreter->liveCount, &interpreter->liveCapacity, sizeof(ObjEnv*));
+    interpreter->live[interpreter->liveCount++] = scope;
     bool returned = false;
-    for (int i = 0; i < count && !returned; i++) returned = execute(in, stmts[i]);
-    in->liveCount--;
-    in->env = saved;
-    env_release(scope);
+    for (int i = 0; i < count && !returned; i++) returned = execute(interpreter, statements[i]);
+    interpreter->liveCount--;
+    interpreter->environment = saved;
+    environmentRelease(scope);
     return returned;
 }
 
-// Returns true if a `return` statement ran, so the enclosing loops and blocks stop and the call unwinds.
-static bool execute(Interpreter* in, const Stmt* s) {
-    switch (s->kind) {
-        case STMT_EXPRESSION: evaluate(in, s->expr); break;
+// Returns true if a `report` statement ran, so the enclosing loops and blocks stop and the call unwinds.
+static bool execute(Interpreter* interpreter, const Stmt* statement) {
+    switch (statement->kind) {
+        case STMT_EXPRESSION: evaluate(interpreter, statement->expression); break;
         case STMT_PRINT: {
-            ObjString* text = value_to_string(evaluate(in, s->expr));
-            fwrite(text->chars, 1, text->length, stdout);
+            ObjString* text = valueToString(evaluate(interpreter, statement->expression));
+            fwrite(text->characters, 1, text->length, stdout);
             fputc('\n', stdout);
             break;
         }
-        case STMT_LET: env_define(in->env, s->name, s->expr ? evaluate(in, s->expr) : nil_val()); break;
-        case STMT_BLOCK: return execute_block(in, s->body, s->bodyCount, env_new(in->env));
+        case STMT_LET: environmentDefine(interpreter->environment, statement->name, statement->expression ? evaluate(interpreter, statement->expression) : nilValue()); break;
+        case STMT_BLOCK: return executeBlock(interpreter, statement->body, statement->bodyCount, environmentNew(interpreter->environment));
         case STMT_IF:
-            if (is_truthy(evaluate(in, s->expr))) return execute(in, s->thenBranch);
-            if (s->elseBranch) return execute(in, s->elseBranch);
+            if (isTruthy(evaluate(interpreter, statement->expression))) return execute(interpreter, statement->thenBranch);
+            if (statement->elseBranch) return execute(interpreter, statement->elseBranch);
             break;
         case STMT_WHILE:
-            while (is_truthy(evaluate(in, s->expr))) {
-                if (execute(in, s->thenBranch)) return true;
+            while (isTruthy(evaluate(interpreter, statement->expression))) {
+                if (execute(interpreter, statement->thenBranch)) return true;
             }
             break;
-        case STMT_FUNCTION: env_define(in->env, s->name, obj_val(function_new(s, in->env))); break;
+        case STMT_FUNCTION: environmentDefine(interpreter->environment, statement->name, objectValue(functionNew(statement, interpreter->environment))); break;
         case STMT_RETURN:
-            if (in->callDepth == 0) lang_error(ERR_RUNTIME, s->line, "Can't return from top-level code.");
-            in->returnValue = s->expr ? evaluate(in, s->expr) : nil_val();
+            if (interpreter->callDepth == 0) languageError(ERR_RUNTIME, statement->line, "Can't report from top-level code.");
+            interpreter->returnValue = statement->expression ? evaluate(interpreter, statement->expression) : nilValue();
             return true;
     }
     return false;
@@ -78,128 +78,128 @@ static bool execute(Interpreter* in, const Stmt* s) {
 
 // ---- expressions ----
 
-static Value eval_unary(Interpreter* in, const Expr* e) {
-    Value operand = evaluate(in, e->left);
-    if (e->op == TOK_BANG) return bool_val(!is_truthy(operand));
-    if (operand.type != VAL_NUMBER) lang_error(ERR_RUNTIME, e->line, "Operand of '-' must be a number.");
-    return number_val(-operand.as.number);
+static Value evaluateUnary(Interpreter* interpreter, const Expr* expression) {
+    Value operand = evaluate(interpreter, expression->left);
+    if (expression->operatorType == TOK_BANG) return booleanValue(!isTruthy(operand));
+    if (operand.type != VAL_NUMBER) languageError(ERR_RUNTIME, expression->line, "Operand of '-' must be a number.");
+    return numberValue(-operand.as.number);
 }
 
-static Value eval_binary(Interpreter* in, const Expr* e) {
-    Value l = evaluate(in, e->left);
-    Value r = evaluate(in, e->right);
+static Value evaluateBinary(Interpreter* interpreter, const Expr* expression) {
+    Value left = evaluate(interpreter, expression->left);
+    Value right = evaluate(interpreter, expression->right);
 
-    if (e->op == TOK_EQUAL_EQUAL) return bool_val(values_equal(l, r));
-    if (e->op == TOK_BANG_EQUAL) return bool_val(!values_equal(l, r));
+    if (expression->operatorType == TOK_EQUAL_EQUAL) return booleanValue(valuesEqual(left, right));
+    if (expression->operatorType == TOK_BANG_EQUAL) return booleanValue(!valuesEqual(left, right));
 
-    if (e->op == TOK_PLUS) {
-        if (l.type == VAL_NUMBER && r.type == VAL_NUMBER) return number_val(l.as.number + r.as.number);
-        if (is_obj_type(l, OBJ_STRING) || is_obj_type(r, OBJ_STRING)) {
+    if (expression->operatorType == TOK_PLUS) {
+        if (left.type == VAL_NUMBER && right.type == VAL_NUMBER) return numberValue(left.as.number + right.as.number);
+        if (isObjectType(left, OBJ_STRING) || isObjectType(right, OBJ_STRING)) {
             // string + anything joins them as text
-            return obj_val(string_concat(value_to_string(l), value_to_string(r)));
+            return objectValue(stringConcatenate(valueToString(left), valueToString(right)));
         }
-        lang_error(ERR_RUNTIME, e->line, "Operands of '+' must be two numbers or include a string.");
+        languageError(ERR_RUNTIME, expression->line, "Operands of '+' must be two numbers or include a string.");
     }
 
-    if (l.type != VAL_NUMBER || r.type != VAL_NUMBER) lang_error(ERR_RUNTIME, e->line, "Operands must be numbers.");
-    double a = l.as.number, b = r.as.number;
+    if (left.type != VAL_NUMBER || right.type != VAL_NUMBER) languageError(ERR_RUNTIME, expression->line, "Operands must be numbers.");
+    double leftNumber = left.as.number, rightNumber = right.as.number;
 
-    switch (e->op) {
-        case TOK_MINUS: return number_val(a - b);
-        case TOK_STAR: return number_val(a * b);
+    switch (expression->operatorType) {
+        case TOK_MINUS: return numberValue(leftNumber - rightNumber);
+        case TOK_STAR: return numberValue(leftNumber * rightNumber);
         case TOK_SLASH:
-            if (b == 0) lang_error(ERR_RUNTIME, e->line, "Division by zero.");
-            return number_val(a / b);
+            if (rightNumber == 0) languageError(ERR_RUNTIME, expression->line, "Division by zero.");
+            return numberValue(leftNumber / rightNumber);
         case TOK_PERCENT:
-            if (b == 0) lang_error(ERR_RUNTIME, e->line, "Division by zero.");
-            return number_val(fmod(a, b));
-        case TOK_GREATER: return bool_val(a > b);
-        case TOK_GREATER_EQUAL: return bool_val(a >= b);
-        case TOK_LESS: return bool_val(a < b);
-        case TOK_LESS_EQUAL: return bool_val(a <= b);
+            if (rightNumber == 0) languageError(ERR_RUNTIME, expression->line, "Division by zero.");
+            return numberValue(fmod(leftNumber, rightNumber));
+        case TOK_GREATER: return booleanValue(leftNumber > rightNumber);
+        case TOK_GREATER_EQUAL: return booleanValue(leftNumber >= rightNumber);
+        case TOK_LESS: return booleanValue(leftNumber < rightNumber);
+        case TOK_LESS_EQUAL: return booleanValue(leftNumber <= rightNumber);
         default: break;
     }
-    lang_error(ERR_RUNTIME, e->line, "Unknown operator.");
+    languageError(ERR_RUNTIME, expression->line, "Unknown operator.");
 }
 
-static Value eval_call(Interpreter* in, const Expr* e) {
-    Value callee = evaluate(in, e->left);
+static Value evaluateCall(Interpreter* interpreter, const Expr* expression) {
+    Value callee = evaluate(interpreter, expression->left);
     // Most calls pass a few arguments, so they fit in a small buffer on the C stack. Longer argument
     // lists (the parser allows up to 255) go to the heap. A variable-length array would be simpler,
     // but MSVC does not support them.
     Value small[8];
-    Value* args = e->argCount <= 8 ? small : malloc(sizeof(Value) * (size_t)e->argCount);
-    if (!args) lang_error(ERR_RUNTIME, e->line, "Out of memory.");
-    for (int i = 0; i < e->argCount; i++) args[i] = evaluate(in, e->args[i]);
+    Value* arguments = expression->argumentCount <= 8 ? small : malloc(sizeof(Value) * (size_t)expression->argumentCount);
+    if (!arguments) languageError(ERR_RUNTIME, expression->line, "Out of memory.");
+    for (int i = 0; i < expression->argumentCount; i++) arguments[i] = evaluate(interpreter, expression->arguments[i]);
 
-    if (!is_obj_type(callee, OBJ_FUNCTION)) lang_error(ERR_RUNTIME, e->line, "Can only call functions.");
-    const ObjFunction* fn = (const ObjFunction*)callee.as.obj;
-    const Stmt* decl = fn->decl;
+    if (!isObjectType(callee, OBJ_FUNCTION)) languageError(ERR_RUNTIME, expression->line, "Can only call functions.");
+    const ObjFunction* function = (const ObjFunction*)callee.as.object;
+    const Stmt* declaration = function->declaration;
 
-    if (e->argCount != decl->paramCount) {
-        lang_error(ERR_RUNTIME, e->line, "Expected %d argument%s but got %d.", decl->paramCount, decl->paramCount == 1 ? "" : "s", e->argCount);
+    if (expression->argumentCount != declaration->parameterCount) {
+        languageError(ERR_RUNTIME, expression->line, "Expected %d argument%s but got %d.", declaration->parameterCount, declaration->parameterCount == 1 ? "" : "s", expression->argumentCount);
     }
-    if (in->callDepth >= MAX_CALL_DEPTH) lang_error(ERR_RUNTIME, e->line, "Stack overflow: too many nested calls.");
+    if (interpreter->callDepth >= MAX_CALL_DEPTH) languageError(ERR_RUNTIME, expression->line, "Stack overflow: too many nested calls.");
 
-    ObjEnv* scope = env_new(fn->closure);
-    for (int i = 0; i < e->argCount; i++) env_define(scope, decl->params[i], args[i]);
-    if (args != small) free(args);
+    ObjEnv* scope = environmentNew(function->closure);
+    for (int i = 0; i < expression->argumentCount; i++) environmentDefine(scope, declaration->parameters[i], arguments[i]);
+    if (arguments != small) free(arguments);
 
-    in->callDepth++;
-    in->returnValue = nil_val();  // functions without a return give nil
-    execute_block(in, decl->body, decl->bodyCount, scope);
-    in->callDepth--;
-    Value result = in->returnValue;
-    in->returnValue = nil_val();
+    interpreter->callDepth++;
+    interpreter->returnValue = nilValue();  // functions without a return give nil
+    executeBlock(interpreter, declaration->body, declaration->bodyCount, scope);
+    interpreter->callDepth--;
+    Value result = interpreter->returnValue;
+    interpreter->returnValue = nilValue();
     return result;
 }
 
-static Value evaluate(Interpreter* in, const Expr* e) {
-    switch (e->kind) {
-        case EXPR_NUMBER: return number_val(e->number);
-        case EXPR_STRING: return obj_val(string_copy(e->text, e->textLength));
-        case EXPR_BOOL: return bool_val(e->boolean);
-        case EXPR_NIL: return nil_val();
+static Value evaluate(Interpreter* interpreter, const Expr* expression) {
+    switch (expression->kind) {
+        case EXPR_NUMBER: return numberValue(expression->number);
+        case EXPR_STRING: return objectValue(stringCopy(expression->text, expression->textLength));
+        case EXPR_BOOL: return booleanValue(expression->boolean);
+        case EXPR_NIL: return nilValue();
         case EXPR_VARIABLE: {
-            const Value* v = env_lookup(in->env, e->text);
-            if (!v) lang_error(ERR_RUNTIME, e->line, "Undefined variable '%s'.", e->text);
-            return *v;
+            const Value* value = environmentLookup(interpreter->environment, expression->text);
+            if (!value) languageError(ERR_RUNTIME, expression->line, "Undefined variable '%s'.", expression->text);
+            return *value;
         }
         case EXPR_ASSIGN: {
-            Value v = evaluate(in, e->left);
-            if (!env_assign(in->env, e->text, v)) lang_error(ERR_RUNTIME, e->line, "Undefined variable '%s'.", e->text);
-            return v;
+            Value value = evaluate(interpreter, expression->left);
+            if (!environmentAssign(interpreter->environment, expression->text, value)) languageError(ERR_RUNTIME, expression->line, "Undefined variable '%s'.", expression->text);
+            return value;
         }
-        case EXPR_UNARY: return eval_unary(in, e);
-        case EXPR_BINARY: return eval_binary(in, e);
+        case EXPR_UNARY: return evaluateUnary(interpreter, expression);
+        case EXPR_BINARY: return evaluateBinary(interpreter, expression);
         case EXPR_LOGICAL: {
-            Value left = evaluate(in, e->left);
-            if (e->op == TOK_OR) {
-                if (is_truthy(left)) return left;
+            Value left = evaluate(interpreter, expression->left);
+            if (expression->operatorType == TOK_OR) {
+                if (isTruthy(left)) return left;
             } else {
-                if (!is_truthy(left)) return left;
+                if (!isTruthy(left)) return left;
             }
-            return evaluate(in, e->right);
+            return evaluate(interpreter, expression->right);
         }
-        case EXPR_CALL: return eval_call(in, e);
+        case EXPR_CALL: return evaluateCall(interpreter, expression);
     }
-    return nil_val();
+    return nilValue();
 }
 
 // ---- running source ----
 
-void interpreter_init(Interpreter* in) {
-    *in = (Interpreter){.globals = env_new(NULL), .returnValue = nil_val()};
-    env_capture(in->globals);  // globals live until exit
-    in->env = in->globals;
+void interpreterInit(Interpreter* interpreter) {
+    *interpreter = (Interpreter){.globals = environmentNew(NULL), .returnValue = nilValue()};
+    environmentCapture(interpreter->globals);  // globals live until exit
+    interpreter->environment = interpreter->globals;
 }
 
-void interpreter_free(Interpreter* in) { free(in->live); }
+void interpreterFree(Interpreter* interpreter) { free(interpreter->live); }
 
 // Lexes and parses. Returns the program, or NULL after reporting a syntax error.
-static Program* parse_source(const char* source, size_t length) {
-    if (setjmp(g_err.env) != 0) {
-        report_error();
+static Program* parseSource(const char* source, size_t length) {
+    if (setjmp(errorState.jumpBuffer) != 0) {
+        reportError();
         return NULL;
     }
     int count;
@@ -207,18 +207,18 @@ static Program* parse_source(const char* source, size_t length) {
     return parse(tokens, count);  // the AST stays alive in the arena: functions point into it
 }
 
-int interpreter_run(Interpreter* in, const char* source, size_t length) {
-    Program* program = parse_source(source, length);
-    if (!program) return EXIT_COMPILE_ERROR;
+int interpreterRun(Interpreter* interpreter, const char* source, size_t length) {
+    Program* program = parseSource(source, length);
+    if (!program) return EXIT_SYNTAX_ERROR;
 
-    if (setjmp(g_err.env) != 0) {
-        report_error();
-        for (int i = 0; i < in->liveCount; i++) env_release(in->live[i]);
-        in->liveCount = 0;
-        in->env = in->globals;
-        in->callDepth = 0;
+    if (setjmp(errorState.jumpBuffer) != 0) {
+        reportError();
+        for (int i = 0; i < interpreter->liveCount; i++) environmentRelease(interpreter->live[i]);
+        interpreter->liveCount = 0;
+        interpreter->environment = interpreter->globals;
+        interpreter->callDepth = 0;
         return EXIT_RUNTIME_ERROR;
     }
-    for (int i = 0; i < program->count; i++) execute(in, program->stmts[i]);
+    for (int i = 0; i < program->count; i++) execute(interpreter, program->statements[i]);
     return EXIT_OK;
 }

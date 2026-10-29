@@ -4,9 +4,9 @@
 // Grammar (lowest precedence first):
 //   program     -> declaration* EOF
 //   declaration -> fnDecl | letDecl | statement
-//   fnDecl      -> "fn" IDENT "(" params? ")" block
-//   letDecl     -> "let" IDENT ( "=" expression )? ";"
-//   statement   -> print | if | while | return | block | exprStmt
+//   fnDecl      -> "protocol" IDENT "(" params? ")" block
+//   letDecl     -> "assign" IDENT ( "=" expression )? ";"
+//   statement   -> broadcast | when | repeat | report | block | exprStmt
 //   expression  -> assignment
 //   assignment  -> IDENT "=" assignment | logicOr
 //   logicOr     -> logicAnd ( "or" logicAnd )*
@@ -17,7 +17,7 @@
 //   factor      -> unary ( ( "/" | "*" | "%" ) unary )*
 //   unary       -> ( "!" | "-" ) unary | call
 //   call        -> primary ( "(" arguments? ")" )*
-//   primary     -> NUMBER | STRING | "true" | "false" | "nil" | IDENT | "(" expression ")"
+//   primary     -> NUMBER | STRING | "affirm" | "negative" | "silence" | IDENT | "(" expression ")"
 #include "ast.h"
 
 // Throws ERR_SYNTAX on bad input. The tree is allocated in the arena.

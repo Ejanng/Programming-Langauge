@@ -1,72 +1,72 @@
-// Error reporting: lang_error() records an error and jumps back to the phase that is running;
-// report_error() prints it as "[line N] Kind error: message" plus the source line. See errors.h.
+// Error reporting: languageError() records an error and jumps back to the phase that is running;
+// reportError() prints it as "[line N] Kind error: message" plus the source line. See errors.h.
 #include "errors.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 
-ErrorState g_err;
+ErrorState errorState;
 
-// The source text currently running, set by error_set_source().
-static const char* g_source = NULL;
-static size_t g_sourceLength = 0;
-static bool g_wholeProgram = false;  // false in the REPL: runtime line numbers may refer to earlier input
+// The source text currently running, set by setErrorSource().
+static const char* currentSource = NULL;
+static size_t currentSourceLength = 0;
+static bool sourceIsWholeProgram = false;  // false in the REPL: runtime line numbers may refer to earlier input
 
-// Records where the error is (the message is already in g_err) and jumps back to the setjmp.
-static _Noreturn void raise_error(ErrorKind kind, int line, long offset) {
-    g_err.kind = kind;
-    g_err.line = line;
-    g_err.offset = offset;
-    longjmp(g_err.env, 1);
+// Records where the error is (the message is already in errorState) and jumps back to the setjmp.
+static _Noreturn void raiseError(ErrorKind kind, int line, long offset) {
+    errorState.kind = kind;
+    errorState.line = line;
+    errorState.offset = offset;
+    longjmp(errorState.jumpBuffer, 1);
 }
 
-void lang_error(ErrorKind kind, int line, const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(g_err.message, sizeof g_err.message, fmt, args);
-    va_end(args);
-    raise_error(kind, line, -1);
+void languageError(ErrorKind kind, int line, const char* format, ...) {
+    va_list arguments;
+    va_start(arguments, format);
+    vsnprintf(errorState.message, sizeof errorState.message, format, arguments);
+    va_end(arguments);
+    raiseError(kind, line, -1);
 }
 
-void lang_error_at(ErrorKind kind, int line, long offset, const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(g_err.message, sizeof g_err.message, fmt, args);
-    va_end(args);
-    raise_error(kind, line, offset);
+void languageErrorAt(ErrorKind kind, int line, long offset, const char* format, ...) {
+    va_list arguments;
+    va_start(arguments, format);
+    vsnprintf(errorState.message, sizeof errorState.message, format, arguments);
+    va_end(arguments);
+    raiseError(kind, line, offset);
 }
 
-void error_set_source(const char* source, size_t length, bool wholeProgram) {
-    g_source = source;
-    g_sourceLength = length;
-    g_wholeProgram = wholeProgram;
+void setErrorSource(const char* source, size_t length, bool wholeProgram) {
+    currentSource = source;
+    currentSourceLength = length;
+    sourceIsWholeProgram = wholeProgram;
 }
 
 // Prints source line `line` with a "  N | " gutter, and a ^ under byte `offset` if it is on that line.
-static void print_source_line(int line, long offset) {
+static void printSourceLine(int line, long offset) {
     // Find where the line starts by counting newlines.
     size_t start = 0;
     for (int current = 1; current < line; current++) {
-        while (start < g_sourceLength && g_source[start] != '\n') start++;
-        if (start >= g_sourceLength) return;  // line is past the end: nothing to show
+        while (start < currentSourceLength && currentSource[start] != '\n') start++;
+        if (start >= currentSourceLength) return;  // line is past the end: nothing to show
         start++;
     }
     size_t end = start;
-    while (end < g_sourceLength && g_source[end] != '\n' && g_source[end] != '\r') end++;
+    while (end < currentSourceLength && currentSource[end] != '\n' && currentSource[end] != '\r') end++;
 
     int width = snprintf(NULL, 0, "%d", line);
-    fprintf(stderr, "    %d | %.*s\n", line, (int)(end - start), g_source + start);
+    fprintf(stderr, "    %d | %.*s\n", line, (int)(end - start), currentSource + start);
     if (offset < (long)start || offset > (long)end) return;
     // Copy tabs from the source line so the ^ lines up however wide the terminal shows a tab.
     fprintf(stderr, "    %*s | ", width, "");
-    for (size_t i = start; i < (size_t)offset; i++) fputc(g_source[i] == '\t' ? '\t' : ' ', stderr);
+    for (size_t i = start; i < (size_t)offset; i++) fputc(currentSource[i] == '\t' ? '\t' : ' ', stderr);
     fputs("^\n", stderr);
 }
 
-void report_error(void) {
-    const char* kind = g_err.kind == ERR_SYNTAX ? "Syntax error" : g_err.kind == ERR_COMPILE ? "Compile error" : "Runtime error";
+void reportError(void) {
+    const char* kind = errorState.kind == ERR_SYNTAX ? "Syntax error" : "Runtime error";
     fflush(stdout);
-    fprintf(stderr, "[line %d] %s: %s\n", g_err.line, kind, g_err.message);
-    bool sourceMatches = g_err.kind != ERR_RUNTIME || g_wholeProgram;
-    if (g_source && sourceMatches && g_err.line > 0) print_source_line(g_err.line, g_err.offset);
+    fprintf(stderr, "[line %d] %s: %s\n", errorState.line, kind, errorState.message);
+    bool sourceMatches = errorState.kind != ERR_RUNTIME || sourceIsWholeProgram;
+    if (currentSource && sourceMatches && errorState.line > 0) printSourceLine(errorState.line, errorState.offset);
 }

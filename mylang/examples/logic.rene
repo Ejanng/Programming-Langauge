@@ -1,12 +1,12 @@
-// Operators, truthiness and if/else.
-print 10 % 3;
-print 7 / 2;
-print -(2 + 3);
-print 1 < 2 and 2 < 3;
-print nil or "default";
-print !true;
-print 1 == 1;
-print "a" == "a";
-print nil == false;
-let x = 5;
-if (x > 3) print "big"; else print "small";
+// Operators, truthiness and when/otherwise.
+broadcast 10 % 3;
+broadcast 7 / 2;
+broadcast -(2 + 3);
+broadcast 1 < 2 and 2 < 3;
+broadcast silence or "default";
+broadcast !affirm;
+broadcast 1 == 1;
+broadcast "a" == "a";
+broadcast silence == negative;
+assign x = 5;
+when (x > 3) broadcast "big"; otherwise broadcast "small";

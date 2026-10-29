@@ -2,7 +2,7 @@
 
 This document checks mylang against the standard criteria for evaluating programming languages: **readability**, **writability**, **reliability** and **cost**, plus portability and generality. Each point is backed by real mylang code and the output it produces, so every claim can be checked by running the interpreter. Weak spots are listed too, because a fair evaluation covers both sides.
 
-Every example below runs as written. Results are the same on both backends: the tree-walking interpreter (`mylang file.rene`) and the bytecode VM (`mylang --vm file.rene`).
+Every example below runs as written with `mylang file.rene`, which runs the program on mylang's tree-walking interpreter.
 
 ## Summary
 
@@ -10,8 +10,8 @@ Every example below runs as written. Results are the same on both backends: the 
 |---|---|---|
 | Readability | Simplicity | 12 keywords, 1 number type, one way to do each thing |
 | | Orthogonality | Every expression works in every expression position; functions are ordinary values |
-| | Data types | Real `true`/`false` and `nil` instead of 1/0 or magic values |
-| | Syntax design | Keywords say what they do (`let`, `fn`, `print`); `{ }` closes every block |
+| | Data types | Real `affirm`/`negative` and `silence` instead of 1/0 or magic values |
+| | Syntax design | Keywords say what they do (`assign`, `protocol`, `broadcast`); `{ }` closes every block |
 | Writability | Simplicity and orthogonality | A few constructs combine freely (see the `power` function in `examples/arithmetic.rene`) |
 | | Support for abstraction | Functions, recursion and closures |
 | | Expressivity | Operators with conventional precedence, `+` that joins text, REPL for quick experiments |
@@ -19,13 +19,13 @@ Every example below runs as written. Results are the same on both backends: the 
 | | Exception handling | Every error is caught and reported with its line number; the REPL keeps running |
 | | Restricted aliasing | No pointers or references; variables hold values |
 | | Readability and writability | The points above make correct programs easier to write and check |
-| Cost | Training, writing, compiling, running, maintenance | Small language, fast startup, two backends, documented source |
+| Cost | Training, writing, compiling, running, maintenance | Small language, fast startup, documented source |
 
 ## 1. Readability
 
 ### Simplicity
 
-The whole language fits on one screen. It has 12 keywords (`let fn return if else while print and or true false nil`), five arithmetic operators (`+ - * / %`), six comparisons and three logical operators. There is one number type, so `7`, `-3` and `2.5` are all just numbers, and there is no `int`/`float`/`long` choice to make.
+The whole language fits on one screen. It has 12 keywords (`assign protocol report when otherwise repeat broadcast and or affirm negative silence`), five arithmetic operators (`+ - * / %`), six comparisons and three logical operators. There is one number type, so `7`, `-3` and `2.5` are all just numbers, and there is no `int`/`float`/`long` choice to make.
 
 The language avoids **feature multiplicity** (several ways to do the same thing). There is no `x++` next to `x += 1` next to `x = x + 1`; only the last exists. It also avoids **operator overloading surprises**: `+` has exactly two meanings, adding numbers and joining text, and both are listed in the README.
 
@@ -33,14 +33,14 @@ The language avoids **feature multiplicity** (several ways to do the same thing)
 
 A small set of constructs combine in every way that makes sense:
 
-- Any expression can go anywhere an expression is allowed: `print`, `let`, conditions, arguments and `return`.
+- Any expression can go anywhere an expression is allowed: `broadcast`, `assign`, conditions, arguments and `report`.
 - Functions are values. They can be stored in variables, passed as arguments and returned from other functions (`examples/closures.rene`).
-- Blocks `{ }` work the same after `if`, `else`, `while` and `fn`, and alone to make a new scope.
+- Blocks `{ }` work the same after `when`, `otherwise`, `repeat` and `protocol`, and alone to make a new scope.
 
 ```
-let width = 12;
-let height = 7;
-print "perimeter = " + 2 * (width + height);   // perimeter = 38
+assign width = 12;
+assign height = 7;
+broadcast "perimeter = " + 2 * (width + height);   // perimeter = 38
 ```
 
 One trade-off is that comparisons such as `<` work only on numbers. This keeps their meaning simple, but it means strings cannot be ordered.
@@ -50,16 +50,16 @@ One trade-off is that comparisons such as `<` work only on numbers. This keeps t
 mylang has a real boolean type, so a condition reads as what it means:
 
 ```
-let done = false;
-if (!done) { print "still working"; }
+assign done = negative;
+when (!done) { broadcast "still working"; }
 ```
 
-Only `false` and `nil` count as false, so `0` and `""` are true. That avoids the classic mistake of a valid zero being treated as "no value".
+Only `negative` and `silence` count as false, so `0` and `""` are true. That avoids the classic mistake of a valid zero being treated as "no value".
 
 ### Syntax design
 
-- Keywords describe their purpose: `let` introduces a variable, `fn` a function, `print` prints.
-- Every block uses `{ }`, so there is no dangling-`else` ambiguity about which `if` an `else` belongs to.
+- Keywords describe their purpose: `assign` introduces a variable, `protocol` a function, `broadcast` prints.
+- Every block uses `{ }`, so there is no dangling-`otherwise` ambiguity about which `when` an `otherwise` belongs to.
 - Every statement ends with `;`, so line breaks never change meaning.
 - Operator precedence follows school arithmetic: `2 + 3 * 4` is `14`, and `(2 + 3) * 4` is `20`. Operators of the same precedence group left to right: `100 - 10 - 1` is `89`.
 
@@ -67,15 +67,15 @@ Only `false` and `nil` count as false, so `0` and `""` are true. That avoids the
 
 ### Simplicity and orthogonality
 
-Because the constructs combine freely, short programs stay short. Raising a number to a power uses only `fn`, `let`, `while` and arithmetic:
+Because the constructs combine freely, short programs stay short. Raising a number to a power uses only `protocol`, `assign`, `repeat` and arithmetic:
 
 ```
-fn power(base, exp) {
-  let result = 1;
-  while (exp > 0) { result = result * base; exp = exp - 1; }
-  return result;
+protocol power(base, exp) {
+  assign result = 1;
+  repeat (exp > 0) { result = result * base; exp = exp - 1; }
+  report result;
 }
-print "2^10 = " + power(2, 10);   // 2^10 = 1024
+broadcast "2^10 = " + power(2, 10);   // 2^10 = 1024
 ```
 
 ### Support for abstraction
@@ -85,7 +85,7 @@ print "2^10 = " + power(2, 10);   // 2^10 = 1024
 
 ### Expressivity
 
-- `+` joins a string with any value, so output needs no conversion calls: `print "area = " + area;`.
+- `+` joins a string with any value, so output needs no conversion calls: `broadcast "area = " + area;`.
 - `and` / `or` short-circuit, so `x != 0 and 10 / x > 1` never divides by zero.
 - The REPL runs one line at a time, adds the final `;` for you and has a `help` command, so trying an idea takes seconds.
 
@@ -96,23 +96,23 @@ print "2^10 = " + power(2, 10);   // 2^10 = 1024
 mylang is dynamically typed, so types are checked while the program runs, at the operator that uses the value. A wrong type stops the program with a message that names the problem, instead of producing a meaningless result:
 
 ```
-print "a" - 1;      // [line 1] Runtime error: Operands must be numbers.
-print true + 1;     // [line 1] Runtime error: Operands of '+' must be two numbers or include a string.
-print 5(3);         // [line 1] Runtime error: Can only call functions.
+broadcast "a" - 1;      // [line 1] Runtime error: Operands must be numbers.
+broadcast affirm + 1;     // [line 1] Runtime error: Operands of '+' must be two numbers or include a string.
+broadcast 5(3);         // [line 1] Runtime error: Can only call functions.
 ```
 
 Function calls are checked too. A wrong number of arguments is an error, never silently ignored:
 
 ```
-fn f(a) { return a; }
-print f(1, 2);      // [line 2] Runtime error: Expected 1 arguments but got 2.
+protocol f(a) { report a; }
+broadcast f(1, 2);      // [line 2] Runtime error: Expected 1 arguments but got 2.
 ```
 
-Variables must be declared with `let` before use, which catches typos in names:
+Variables must be declared with `assign` before use, which catches typos in names:
 
 ```
-let total = 5;
-print totl;         // [line 2] Runtime error: Undefined variable 'totl'.
+assign total = 5;
+broadcast totl;         // [line 2] Runtime error: Undefined variable 'totl'.
 ```
 
 A variable declared inside a block is not visible after the block ends, which keeps names from leaking (`examples/scopes.rene`).
@@ -123,18 +123,18 @@ The language does not have `try`/`catch`. Instead, the implementation catches ev
 
 ```
 [line 4] Syntax error: Expect expression. (found '*')
-    4 | print (3 + * 4;
-      |            ^
+    4 | broadcast (3 + * 4;
+      |                ^
 ```
 
 
 | Stage | Example input | Message |
 |---|---|---|
-| Lexer | `print 5 $ 2;` | `[line 1] Syntax error: Unexpected character '$'.` |
-| Parser | `print (3 + * 4;` | `[line 1] Syntax error: Expect expression. (found '*')` |
-| Parser | `print 1 + 2` | `[line 1] Syntax error: Expect ';' after value. (reached end of file)` |
-| Runtime | `print 1 / 0;` | `[line 1] Runtime error: Division by zero.` |
-| Runtime | `print 5 % 0;` | `[line 1] Runtime error: Division by zero.` |
+| Lexer | `broadcast 5 $ 2;` | `[line 1] Syntax error: Unexpected character '$'.` |
+| Parser | `broadcast (3 + * 4;` | `[line 1] Syntax error: Expect expression. (found '*')` |
+| Parser | `broadcast 1 + 2` | `[line 1] Syntax error: Expect ';' after value. (reached end of file)` |
+| Runtime | `broadcast 1 / 0;` | `[line 1] Runtime error: Division by zero.` |
+| Runtime | `broadcast 5 % 0;` | `[line 1] Runtime error: Division by zero.` |
 | Runtime | endless recursion | `[line 1] Runtime error: Stack overflow: too many nested calls.` |
 
 Badly formatted programs are rejected **before anything runs**: a syntax error anywhere in a file means no line of it executes (`examples/error_syntax.rene`). The process exit code tells scripts what happened: `0` success, `65` syntax error, `70` runtime error, `74` file not found, `64` bad command-line usage.
@@ -154,8 +154,8 @@ Numbers are stored as 64-bit floating point (IEEE 754 doubles). Every whole numb
 - **Training:** the language is small and its syntax resembles C, Java and JavaScript, so it can be learned in an afternoon. The REPL's `help` command lists every construct.
 - **Writing programs:** see Writability above.
 - **Compiling:** there is no separate compile step for the user. The interpreter starts and runs a file in milliseconds.
-- **Executing:** two backends trade off differently. The tree-walking interpreter is the simplest to read; the bytecode VM resolves variable names before running, so variable access is a stack index instead of a name lookup.
-- **Implementation:** the interpreter is about 3,000 lines of standard C11 with no external libraries, so it builds with any C compiler.
+- **Executing:** the tree-walking interpreter is simple to read and fast enough for small programs. It looks variables up by name in a chain of scopes, which is slower than compiling them to fixed positions first, but keeps the implementation small.
+- **Implementation:** the interpreter is about 1,500 lines of standard C11 with no external libraries, so it builds with any C compiler.
 - **Reliability cost:** errors stop at the first problem with a line number, so a mistake does not run on and corrupt later results.
 - **Maintenance:** every source file has a header comment, every struct field is documented, and [code-guide.md](code-guide.md) walks through each file.
 
@@ -163,7 +163,7 @@ Numbers are stored as 64-bit floating point (IEEE 754 doubles). Every whole numb
 
 - **Portability:** standard C11 only, with no compiler-specific features. It builds with GCC or Clang (Linux, macOS, MinGW) and with Microsoft Visual C++ (Windows), and `tests/run_tests.sh` checks that every example gives the same output on each.
 - **Generality:** variables, conditionals, loops and recursive functions make the language Turing complete, so it can express any computation, not only arithmetic.
-- **Well-definedness:** the grammar is written out in full at the top of `src/parser.h`, and both backends are tested against the same expected output, so the language means the same thing whichever backend runs it.
+- **Well-definedness:** the grammar is written out in full at the top of `src/parser.h`, and every example is tested against its expected output, so any change in what a program means is caught.
 
 ## Known limitations
 
@@ -171,6 +171,6 @@ These are honest gaps, with the criterion each one affects:
 
 - **No separate integer type** (reliability): whole numbers above 2^53 lose precision. A future version could add 64-bit integers with overflow checks.
 - **No compile-time type checking** (reliability): a type error in a branch that never runs is not reported.
-- **No `for`, `break` or `else if` keyword** (writability): `else { if ... }` and `while` cover these cases, but take more typing.
+- **No `for`, `break` or `otherwise when` keyword** (writability): `otherwise { when ... }` and `repeat` cover these cases, but take more typing.
 - **No lists or user-defined types** (writability, generality): there are no data structures beyond single values.
 - **Only the first error is reported** (cost of writing programs): fixing several syntax errors takes several runs.

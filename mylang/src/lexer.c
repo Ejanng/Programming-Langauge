@@ -11,151 +11,151 @@
 #include "errors.h"
 
 typedef struct {
-    const char* src;  // the source text being scanned
-    size_t len;       // length of src
-    size_t start;     // index where the current token begins
-    size_t cur;       // index of the next character to read
-    int line;         // current line number, for tokens and errors
-    Token* tokens;    // tokens produced so far
-    int count;        // number of entries in tokens
-    int cap;          // slots allocated in tokens
+    const char* source;  // the source text being scanned
+    size_t length;       // length of source
+    size_t start;        // index where the current token begins
+    size_t current;      // index of the next character to read
+    int line;            // current line number, for tokens and errors
+    Token* tokens;       // tokens produced so far
+    int count;           // number of entries in tokens
+    int capacity;        // slots allocated in tokens
 } Lexer;
 
-static bool at_end(const Lexer* lx) { return lx->cur >= lx->len; }
-static char peek(const Lexer* lx) { return at_end(lx) ? '\0' : lx->src[lx->cur]; }
-static char peek_next(const Lexer* lx) { return lx->cur + 1 >= lx->len ? '\0' : lx->src[lx->cur + 1]; }
-static char advance(Lexer* lx) { return lx->src[lx->cur++]; }
+static bool isAtEnd(const Lexer* lexer) { return lexer->current >= lexer->length; }
+static char peek(const Lexer* lexer) { return isAtEnd(lexer) ? '\0' : lexer->source[lexer->current]; }
+static char peekNext(const Lexer* lexer) { return lexer->current + 1 >= lexer->length ? '\0' : lexer->source[lexer->current + 1]; }
+static char advance(Lexer* lexer) { return lexer->source[lexer->current++]; }
 
-static bool match(Lexer* lx, char expected) {
-    if (at_end(lx) || lx->src[lx->cur] != expected) return false;
-    lx->cur++;
+static bool match(Lexer* lexer, char expected) {
+    if (isAtEnd(lexer) || lexer->source[lexer->current] != expected) return false;
+    lexer->current++;
     return true;
 }
 
-static bool is_digit(char c) { return isdigit((unsigned char)c) != 0; }
-static bool is_alpha(char c) { return isalpha((unsigned char)c) != 0 || c == '_'; }
+static bool isDigit(char character) { return isdigit((unsigned char)character) != 0; }
+static bool isAlpha(char character) { return isalpha((unsigned char)character) != 0 || character == '_'; }
 
-static void push_token(Lexer* lx, Token t) {
-    t.offset = lx->start;
-    lx->tokens = arena_array_reserve(lx->tokens, lx->count, &lx->cap, sizeof(Token));
-    lx->tokens[lx->count++] = t;
+static void pushToken(Lexer* lexer, Token token) {
+    token.offset = lexer->start;
+    lexer->tokens = arenaReserveArray(lexer->tokens, lexer->count, &lexer->capacity, sizeof(Token));
+    lexer->tokens[lexer->count++] = token;
 }
 
-static void add(Lexer* lx, TokenType type) {
-    size_t n = lx->cur - lx->start;
-    push_token(lx, (Token){type, arena_strndup(lx->src + lx->start, n), n, 0, lx->line});
+static void addToken(Lexer* lexer, TokenType type) {
+    size_t length = lexer->current - lexer->start;
+    pushToken(lexer, (Token){type, arenaDuplicateString(lexer->source + lexer->start, length), length, 0, lexer->line});
 }
 
-static void string(Lexer* lx) {
-    int startLine = lx->line;
-    size_t cap = 16, n = 0;
-    char* value = malloc(cap);
-    while (!at_end(lx) && peek(lx) != '"') {
-        char c = advance(lx);
-        if (c == '\n') lx->line++;
-        if (c == '\\' && !at_end(lx)) {  // escape sequences: \n \t \" \\ .
-            char e = advance(lx);
-            switch (e) {
-                case 'n': c = '\n'; break;
-                case 't': c = '\t'; break;
-                default: c = e;  // \" and \\ map to themselves, like any other escaped character
+static void scanString(Lexer* lexer) {
+    int startLine = lexer->line;
+    size_t capacity = 16, length = 0;
+    char* value = malloc(capacity);
+    while (!isAtEnd(lexer) && peek(lexer) != '"') {
+        char character = advance(lexer);
+        if (character == '\n') lexer->line++;
+        if (character == '\\' && !isAtEnd(lexer)) {  // escape sequences: \n \t \" \\ .
+            char escaped = advance(lexer);
+            switch (escaped) {
+                case 'n': character = '\n'; break;
+                case 't': character = '\t'; break;
+                default: character = escaped;  // \" and \\ map to themselves, like any other escaped character
             }
         }
-        if (n + 1 >= cap) value = realloc(value, cap *= 2);
-        value[n++] = c;
+        if (length + 1 >= capacity) value = realloc(value, capacity *= 2);
+        value[length++] = character;
     }
-    if (at_end(lx)) {
+    if (isAtEnd(lexer)) {
         free(value);
-        lang_error_at(ERR_SYNTAX, startLine, (long)lx->start, "Unterminated string.");
+        languageErrorAt(ERR_SYNTAX, startLine, (long)lexer->start, "Unterminated string.");
     }
-    advance(lx);  // closing quote
-    push_token(lx, (Token){TOK_STRING, arena_strndup(value, n), n, 0, startLine});
+    advance(lexer);  // closing quote
+    pushToken(lexer, (Token){TOK_STRING, arenaDuplicateString(value, length), length, 0, startLine});
     free(value);
 }
 
-static void number(Lexer* lx) {
-    while (is_digit(peek(lx))) advance(lx);
-    if (peek(lx) == '.' && is_digit(peek_next(lx))) {
-        advance(lx);
-        while (is_digit(peek(lx))) advance(lx);
+static void scanNumber(Lexer* lexer) {
+    while (isDigit(peek(lexer))) advance(lexer);
+    if (peek(lexer) == '.' && isDigit(peekNext(lexer))) {
+        advance(lexer);
+        while (isDigit(peek(lexer))) advance(lexer);
     }
-    size_t n = lx->cur - lx->start;
-    const char* text = arena_strndup(lx->src + lx->start, n);
-    push_token(lx, (Token){TOK_NUMBER, text, n, strtod(text, NULL), lx->line});
+    size_t length = lexer->current - lexer->start;
+    const char* text = arenaDuplicateString(lexer->source + lexer->start, length);
+    pushToken(lexer, (Token){TOK_NUMBER, text, length, strtod(text, NULL), lexer->line});
 }
 
-static void identifier(Lexer* lx) {
+static void scanIdentifier(Lexer* lexer) {
     static const struct {
         const char* word;
         TokenType type;
     } keywords[] = {
-        {"and", TOK_AND},       {"else", TOK_ELSE},     {"false", TOK_FALSE}, {"fn", TOK_FN},
-        {"if", TOK_IF},         {"let", TOK_LET},       {"nil", TOK_NIL},     {"or", TOK_OR},
-        {"print", TOK_PRINT},   {"return", TOK_RETURN}, {"true", TOK_TRUE},   {"while", TOK_WHILE},
+        {"and", TOK_AND},             {"otherwise", TOK_ELSE}, {"negative", TOK_FALSE}, {"protocol", TOK_FN},
+        {"when", TOK_IF},             {"assign", TOK_LET},     {"silence", TOK_NIL},    {"or", TOK_OR},
+        {"broadcast", TOK_PRINT},     {"report", TOK_RETURN},  {"affirm", TOK_TRUE},    {"repeat", TOK_WHILE},
     };
-    while (is_alpha(peek(lx)) || is_digit(peek(lx))) advance(lx);
-    size_t n = lx->cur - lx->start;
+    while (isAlpha(peek(lexer)) || isDigit(peek(lexer))) advance(lexer);
+    size_t length = lexer->current - lexer->start;
     TokenType type = TOK_IDENTIFIER;
     for (size_t i = 0; i < sizeof keywords / sizeof keywords[0]; i++) {
-        if (strlen(keywords[i].word) == n && memcmp(keywords[i].word, lx->src + lx->start, n) == 0) {
+        if (strlen(keywords[i].word) == length && memcmp(keywords[i].word, lexer->source + lexer->start, length) == 0) {
             type = keywords[i].type;
             break;
         }
     }
-    add(lx, type);
+    addToken(lexer, type);
 }
 
-static void scan_token(Lexer* lx) {
-    char c = advance(lx);
-    switch (c) {
-        case '(': add(lx, TOK_LEFT_PAREN); break;
-        case ')': add(lx, TOK_RIGHT_PAREN); break;
-        case '{': add(lx, TOK_LEFT_BRACE); break;
-        case '}': add(lx, TOK_RIGHT_BRACE); break;
-        case ',': add(lx, TOK_COMMA); break;
-        case ';': add(lx, TOK_SEMICOLON); break;
-        case '+': add(lx, TOK_PLUS); break;
-        case '-': add(lx, TOK_MINUS); break;
-        case '*': add(lx, TOK_STAR); break;
-        case '%': add(lx, TOK_PERCENT); break;
-        case '!': add(lx, match(lx, '=') ? TOK_BANG_EQUAL : TOK_BANG); break;
-        case '=': add(lx, match(lx, '=') ? TOK_EQUAL_EQUAL : TOK_EQUAL); break;
-        case '<': add(lx, match(lx, '=') ? TOK_LESS_EQUAL : TOK_LESS); break;
-        case '>': add(lx, match(lx, '=') ? TOK_GREATER_EQUAL : TOK_GREATER); break;
+static void scanToken(Lexer* lexer) {
+    char character = advance(lexer);
+    switch (character) {
+        case '(': addToken(lexer, TOK_LEFT_PAREN); break;
+        case ')': addToken(lexer, TOK_RIGHT_PAREN); break;
+        case '{': addToken(lexer, TOK_LEFT_BRACE); break;
+        case '}': addToken(lexer, TOK_RIGHT_BRACE); break;
+        case ',': addToken(lexer, TOK_COMMA); break;
+        case ';': addToken(lexer, TOK_SEMICOLON); break;
+        case '+': addToken(lexer, TOK_PLUS); break;
+        case '-': addToken(lexer, TOK_MINUS); break;
+        case '*': addToken(lexer, TOK_STAR); break;
+        case '%': addToken(lexer, TOK_PERCENT); break;
+        case '!': addToken(lexer, match(lexer, '=') ? TOK_BANG_EQUAL : TOK_BANG); break;
+        case '=': addToken(lexer, match(lexer, '=') ? TOK_EQUAL_EQUAL : TOK_EQUAL); break;
+        case '<': addToken(lexer, match(lexer, '=') ? TOK_LESS_EQUAL : TOK_LESS); break;
+        case '>': addToken(lexer, match(lexer, '=') ? TOK_GREATER_EQUAL : TOK_GREATER); break;
         case '/':
-            if (match(lx, '/')) {
-                while (peek(lx) != '\n' && !at_end(lx)) advance(lx);  // comment runs to end of line
+            if (match(lexer, '/')) {
+                while (peek(lexer) != '\n' && !isAtEnd(lexer)) advance(lexer);  // comment runs to end of line
             } else {
-                add(lx, TOK_SLASH);
+                addToken(lexer, TOK_SLASH);
             }
             break;
         case ' ':
         case '\r':
         case '\t': break;
-        case '\n': lx->line++; break;
-        case '"': string(lx); break;
+        case '\n': lexer->line++; break;
+        case '"': scanString(lexer); break;
         default:
-            if (is_digit(c)) {
-                number(lx);
-            } else if (is_alpha(c)) {
-                identifier(lx);
+            if (isDigit(character)) {
+                scanNumber(lexer);
+            } else if (isAlpha(character)) {
+                scanIdentifier(lexer);
             } else {
-                lang_error_at(ERR_SYNTAX, lx->line, (long)lx->start, "Unexpected character '%c'.", c);
+                languageErrorAt(ERR_SYNTAX, lexer->line, (long)lexer->start, "Unexpected character '%c'.", character);
             }
     }
 }
 
 Token* lex(const char* source, size_t length, int* count) {
-    Lexer lx = {.src = source, .len = length, .line = 1};
+    Lexer lexer = {.source = source, .length = length, .line = 1};
     // Skip a UTF-8 byte order mark. Windows editors such as Notepad (and PowerShell pipes) put
     // one at the start of text, and it is not part of the program.
-    if (length >= 3 && memcmp(source, "\xEF\xBB\xBF", 3) == 0) lx.cur = 3;
-    while (!at_end(&lx)) {
-        lx.start = lx.cur;
-        scan_token(&lx);
+    if (length >= 3 && memcmp(source, "\xEF\xBB\xBF", 3) == 0) lexer.current = 3;
+    while (!isAtEnd(&lexer)) {
+        lexer.start = lexer.current;
+        scanToken(&lexer);
     }
-    lx.start = lx.cur;  // the end-of-file token sits just past the last character
-    push_token(&lx, (Token){TOK_EOF, "", 0, 0, lx.line});
-    *count = lx.count;
-    return lx.tokens;
+    lexer.start = lexer.current;  // the end-of-file token sits just past the last character
+    pushToken(&lexer, (Token){TOK_EOF, "", 0, 0, lexer.line});
+    *count = lexer.count;
+    return lexer.tokens;
 }

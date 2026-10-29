@@ -15,60 +15,60 @@ typedef struct Block {
     size_t size;         // bytes of usable space in this block
     // Forces the data that follows to be aligned for any type. A union is used instead of C11's
     // max_align_t because MSVC does not define max_align_t when compiling C.
-    union { long double ld; long long ll; void* p; void (*fn)(void); } align;
+    union { long double longDouble; long long longLong; void* pointer; void (*functionPointer)(void); } align;
 } Block;
 
 static Block* blocks = NULL;
 
-static Block* new_block(size_t size) {
-    Block* b = calloc(1, sizeof(Block) + size);  // calloc: arena memory starts out zeroed
-    if (!b) {
+static Block* newBlock(size_t size) {
+    Block* block = calloc(1, sizeof(Block) + size);  // calloc: arena memory starts out zeroed
+    if (!block) {
         fputs("Out of memory.\n", stderr);
         exit(70);
     }
-    b->size = size;
-    return b;
+    block->size = size;
+    return block;
 }
 
-void* arena_alloc(size_t size) {
+void* arenaAllocate(size_t size) {
     size = (size + 15) & ~(size_t)15;
     if (size > BLOCK_SIZE / 4) {  // big requests get a block of their own
-        Block* b = new_block(size);
+        Block* block = newBlock(size);
         if (blocks) {
-            b->next = blocks->next;  // keep the current bump block at the head
-            blocks->next = b;
+            block->next = blocks->next;  // keep the current bump block at the head
+            blocks->next = block;
         } else {
-            blocks = b;
+            blocks = block;
         }
-        b->used = size;
-        return (char*)(b + 1);
+        block->used = size;
+        return (char*)(block + 1);
     }
     if (!blocks || blocks->used + size > blocks->size) {
-        Block* b = new_block(BLOCK_SIZE);
-        b->next = blocks;
-        blocks = b;
+        Block* block = newBlock(BLOCK_SIZE);
+        block->next = blocks;
+        blocks = block;
     }
-    void* p = (char*)(blocks + 1) + blocks->used;
+    void* pointer = (char*)(blocks + 1) + blocks->used;
     blocks->used += size;
-    return p;
+    return pointer;
 }
 
-char* arena_strndup(const char* text, size_t length) {
-    char* copy = arena_alloc(length + 1);
+char* arenaDuplicateString(const char* text, size_t length) {
+    char* copy = arenaAllocate(length + 1);
     memcpy(copy, text, length);
     return copy;
 }
 
-void* arena_array_reserve(void* array, int count, int* cap, size_t elemSize) {
-    if (count < *cap) return array;
-    int newCap = *cap < 8 ? 8 : *cap * 2;
-    void* grown = arena_alloc((size_t)newCap * elemSize);
-    if (count > 0) memcpy(grown, array, (size_t)count * elemSize);
-    *cap = newCap;
+void* arenaReserveArray(void* array, int count, int* capacity, size_t elementSize) {
+    if (count < *capacity) return array;
+    int newCapacity = *capacity < 8 ? 8 : *capacity * 2;
+    void* grown = arenaAllocate((size_t)newCapacity * elementSize);
+    if (count > 0) memcpy(grown, array, (size_t)count * elementSize);
+    *capacity = newCapacity;
     return grown;
 }
 
-void arena_free_all(void) {
+void arenaFreeAll(void) {
     while (blocks) {
         Block* next = blocks->next;
         free(blocks);
@@ -76,7 +76,7 @@ void arena_free_all(void) {
     }
 }
 
-void ptrvec_push(PtrVec* vec, void* item) {
-    vec->items = arena_array_reserve(vec->items, vec->count, &vec->cap, sizeof(void*));
-    vec->items[vec->count++] = item;
+void pointerVectorPush(PtrVec* vector, void* item) {
+    vector->items = arenaReserveArray(vector->items, vector->count, &vector->capacity, sizeof(void*));
+    vector->items[vector->count++] = item;
 }

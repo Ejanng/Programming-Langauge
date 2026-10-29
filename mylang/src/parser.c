@@ -14,300 +14,300 @@ typedef struct {
     int current;          // index of the next token to consume
 } Parser;
 
-static Stmt* declaration(Parser* p);
-static Stmt* statement(Parser* p);
-static Expr* expression(Parser* p);
-static Expr* unary(Parser* p);
+static Stmt* parseDeclaration(Parser* parser);
+static Stmt* parseStatement(Parser* parser);
+static Expr* parseExpression(Parser* parser);
+static Expr* parseUnary(Parser* parser);
 
 // ---- token helpers ----
 
-static const Token* peek(const Parser* p) { return &p->tokens[p->current]; }
-static const Token* previous(const Parser* p) { return &p->tokens[p->current - 1]; }
-static bool is_at_end(const Parser* p) { return peek(p)->type == TOK_EOF; }
-static bool check(const Parser* p, TokenType t) { return !is_at_end(p) && peek(p)->type == t; }
+static const Token* peek(const Parser* parser) { return &parser->tokens[parser->current]; }
+static const Token* previous(const Parser* parser) { return &parser->tokens[parser->current - 1]; }
+static bool isAtEnd(const Parser* parser) { return peek(parser)->type == TOK_EOF; }
+static bool check(const Parser* parser, TokenType type) { return !isAtEnd(parser) && peek(parser)->type == type; }
 
-static const Token* advance(Parser* p) {
-    if (!is_at_end(p)) p->current++;
-    return previous(p);
+static const Token* advance(Parser* parser) {
+    if (!isAtEnd(parser)) parser->current++;
+    return previous(parser);
 }
 
-static bool match(Parser* p, TokenType t) {
-    if (!check(p, t)) return false;
-    advance(p);
+static bool match(Parser* parser, TokenType type) {
+    if (!check(parser, type)) return false;
+    advance(parser);
     return true;
 }
 
-static bool match_any(Parser* p, const TokenType* types, int n) {
-    for (int i = 0; i < n; i++) {
-        if (match(p, types[i])) return true;
+static bool matchAny(Parser* parser, const TokenType* types, int count) {
+    for (int i = 0; i < count; i++) {
+        if (match(parser, types[i])) return true;
     }
     return false;
 }
 
-_Noreturn static void error_at(const Token* token, const char* message) {
+_Noreturn static void errorAt(const Token* token, const char* message) {
     if (token->type == TOK_EOF) {
-        lang_error_at(ERR_SYNTAX, token->line, (long)token->offset, "%s (reached end of file)", message);
+        languageErrorAt(ERR_SYNTAX, token->line, (long)token->offset, "%s (reached end of file)", message);
     }
-    lang_error_at(ERR_SYNTAX, token->line, (long)token->offset, "%s (found '%s')", message, token->lexeme);
+    languageErrorAt(ERR_SYNTAX, token->line, (long)token->offset, "%s (found '%s')", message, token->lexeme);
 }
 
-static const Token* consume(Parser* p, TokenType t, const char* message) {
-    if (check(p, t)) return advance(p);
-    error_at(peek(p), message);
+static const Token* consume(Parser* parser, TokenType type, const char* message) {
+    if (check(parser, type)) return advance(parser);
+    errorAt(peek(parser), message);
 }
 
 // ---- nodes ----
 
-static Expr* new_expr(ExprKind kind, int line) {
-    Expr* e = arena_alloc(sizeof(Expr));
-    e->kind = kind;
-    e->line = line;
-    e->op = TOK_EOF;
-    return e;
+static Expr* newExpression(ExprKind kind, int line) {
+    Expr* node = arenaAllocate(sizeof(Expr));
+    node->kind = kind;
+    node->line = line;
+    node->operatorType = TOK_EOF;
+    return node;
 }
 
-static Stmt* new_stmt(StmtKind kind, int line) {
-    Stmt* s = arena_alloc(sizeof(Stmt));
-    s->kind = kind;
-    s->line = line;
-    return s;
+static Stmt* newStatement(StmtKind kind, int line) {
+    Stmt* statement = arenaAllocate(sizeof(Stmt));
+    statement->kind = kind;
+    statement->line = line;
+    return statement;
 }
 
 // ---- statements ----
 
 // Parses statements up to and including the closing '}' of a block.
-static void block_statements(Parser* p, Stmt*** body, int* bodyCount) {
-    PtrVec stmts = {0};
-    while (!check(p, TOK_RIGHT_BRACE) && !is_at_end(p)) ptrvec_push(&stmts, declaration(p));
-    consume(p, TOK_RIGHT_BRACE, "Expect '}' after block.");
-    *body = (Stmt**)stmts.items;
-    *bodyCount = stmts.count;
+static void parseBlockStatements(Parser* parser, Stmt*** body, int* bodyCount) {
+    PtrVec statements = {0};
+    while (!check(parser, TOK_RIGHT_BRACE) && !isAtEnd(parser)) pointerVectorPush(&statements, parseDeclaration(parser));
+    consume(parser, TOK_RIGHT_BRACE, "Expect '}' after block.");
+    *body = (Stmt**)statements.items;
+    *bodyCount = statements.count;
 }
 
-static Stmt* fn_declaration(Parser* p) {
-    const Token* name = consume(p, TOK_IDENTIFIER, "Expect function name after 'fn'.");
-    Stmt* s = new_stmt(STMT_FUNCTION, name->line);
-    s->name = name->lexeme;
-    consume(p, TOK_LEFT_PAREN, "Expect '(' after function name.");
-    PtrVec params = {0};
-    if (!check(p, TOK_RIGHT_PAREN)) {
+static Stmt* parseFunctionDeclaration(Parser* parser) {
+    const Token* name = consume(parser, TOK_IDENTIFIER, "Expect function name after 'protocol'.");
+    Stmt* statement = newStatement(STMT_FUNCTION, name->line);
+    statement->name = name->lexeme;
+    consume(parser, TOK_LEFT_PAREN, "Expect '(' after function name.");
+    PtrVec parameters = {0};
+    if (!check(parser, TOK_RIGHT_PAREN)) {
         do {
-            if (params.count >= 255) error_at(peek(p), "Can't have more than 255 parameters.");
-            ptrvec_push(&params, (void*)consume(p, TOK_IDENTIFIER, "Expect parameter name.")->lexeme);
-        } while (match(p, TOK_COMMA));
+            if (parameters.count >= 255) errorAt(peek(parser), "Can't have more than 255 parameters.");
+            pointerVectorPush(&parameters, (void*)consume(parser, TOK_IDENTIFIER, "Expect parameter name.")->lexeme);
+        } while (match(parser, TOK_COMMA));
     }
-    s->params = (const char**)params.items;
-    s->paramCount = params.count;
-    consume(p, TOK_RIGHT_PAREN, "Expect ')' after parameters.");
-    consume(p, TOK_LEFT_BRACE, "Expect '{' before function body.");
-    block_statements(p, &s->body, &s->bodyCount);
-    return s;
+    statement->parameters = (const char**)parameters.items;
+    statement->parameterCount = parameters.count;
+    consume(parser, TOK_RIGHT_PAREN, "Expect ')' after parameters.");
+    consume(parser, TOK_LEFT_BRACE, "Expect '{' before function body.");
+    parseBlockStatements(parser, &statement->body, &statement->bodyCount);
+    return statement;
 }
 
-static Stmt* let_declaration(Parser* p) {
-    const Token* name = consume(p, TOK_IDENTIFIER, "Expect variable name after 'let'.");
-    Stmt* s = new_stmt(STMT_LET, name->line);
-    s->name = name->lexeme;
-    if (match(p, TOK_EQUAL)) s->expr = expression(p);
-    consume(p, TOK_SEMICOLON, "Expect ';' after variable declaration.");
-    return s;
+static Stmt* parseLetDeclaration(Parser* parser) {
+    const Token* name = consume(parser, TOK_IDENTIFIER, "Expect variable name after 'assign'.");
+    Stmt* statement = newStatement(STMT_LET, name->line);
+    statement->name = name->lexeme;
+    if (match(parser, TOK_EQUAL)) statement->expression = parseExpression(parser);
+    consume(parser, TOK_SEMICOLON, "Expect ';' after variable declaration.");
+    return statement;
 }
 
-static Stmt* print_statement(Parser* p) {
-    Stmt* s = new_stmt(STMT_PRINT, previous(p)->line);
-    s->expr = expression(p);
-    consume(p, TOK_SEMICOLON, "Expect ';' after value.");
-    return s;
+static Stmt* parsePrintStatement(Parser* parser) {
+    Stmt* statement = newStatement(STMT_PRINT, previous(parser)->line);
+    statement->expression = parseExpression(parser);
+    consume(parser, TOK_SEMICOLON, "Expect ';' after value.");
+    return statement;
 }
 
-static Stmt* if_statement(Parser* p) {
-    Stmt* s = new_stmt(STMT_IF, previous(p)->line);
-    consume(p, TOK_LEFT_PAREN, "Expect '(' after 'if'.");
-    s->expr = expression(p);
-    consume(p, TOK_RIGHT_PAREN, "Expect ')' after condition.");
-    s->thenBranch = statement(p);
-    if (match(p, TOK_ELSE)) s->elseBranch = statement(p);
-    return s;
+static Stmt* parseIfStatement(Parser* parser) {
+    Stmt* statement = newStatement(STMT_IF, previous(parser)->line);
+    consume(parser, TOK_LEFT_PAREN, "Expect '(' after 'when'.");
+    statement->expression = parseExpression(parser);
+    consume(parser, TOK_RIGHT_PAREN, "Expect ')' after condition.");
+    statement->thenBranch = parseStatement(parser);
+    if (match(parser, TOK_ELSE)) statement->elseBranch = parseStatement(parser);
+    return statement;
 }
 
-static Stmt* while_statement(Parser* p) {
-    Stmt* s = new_stmt(STMT_WHILE, previous(p)->line);
-    consume(p, TOK_LEFT_PAREN, "Expect '(' after 'while'.");
-    s->expr = expression(p);
-    consume(p, TOK_RIGHT_PAREN, "Expect ')' after condition.");
-    s->thenBranch = statement(p);
-    return s;
+static Stmt* parseWhileStatement(Parser* parser) {
+    Stmt* statement = newStatement(STMT_WHILE, previous(parser)->line);
+    consume(parser, TOK_LEFT_PAREN, "Expect '(' after 'repeat'.");
+    statement->expression = parseExpression(parser);
+    consume(parser, TOK_RIGHT_PAREN, "Expect ')' after condition.");
+    statement->thenBranch = parseStatement(parser);
+    return statement;
 }
 
-static Stmt* return_statement(Parser* p) {
-    Stmt* s = new_stmt(STMT_RETURN, previous(p)->line);
-    if (!check(p, TOK_SEMICOLON)) s->expr = expression(p);
-    consume(p, TOK_SEMICOLON, "Expect ';' after return value.");
-    return s;
+static Stmt* parseReturnStatement(Parser* parser) {
+    Stmt* statement = newStatement(STMT_RETURN, previous(parser)->line);
+    if (!check(parser, TOK_SEMICOLON)) statement->expression = parseExpression(parser);
+    consume(parser, TOK_SEMICOLON, "Expect ';' after report value.");
+    return statement;
 }
 
-static Stmt* expression_statement(Parser* p) {
-    Stmt* s = new_stmt(STMT_EXPRESSION, peek(p)->line);
-    s->expr = expression(p);
-    consume(p, TOK_SEMICOLON, "Expect ';' after expression.");
-    return s;
+static Stmt* parseExpressionStatement(Parser* parser) {
+    Stmt* statement = newStatement(STMT_EXPRESSION, peek(parser)->line);
+    statement->expression = parseExpression(parser);
+    consume(parser, TOK_SEMICOLON, "Expect ';' after expression.");
+    return statement;
 }
 
-static Stmt* statement(Parser* p) {
-    if (match(p, TOK_PRINT)) return print_statement(p);
-    if (match(p, TOK_IF)) return if_statement(p);
-    if (match(p, TOK_WHILE)) return while_statement(p);
-    if (match(p, TOK_RETURN)) return return_statement(p);
-    if (match(p, TOK_LEFT_BRACE)) {
-        Stmt* s = new_stmt(STMT_BLOCK, previous(p)->line);
-        block_statements(p, &s->body, &s->bodyCount);
-        return s;
+static Stmt* parseStatement(Parser* parser) {
+    if (match(parser, TOK_PRINT)) return parsePrintStatement(parser);
+    if (match(parser, TOK_IF)) return parseIfStatement(parser);
+    if (match(parser, TOK_WHILE)) return parseWhileStatement(parser);
+    if (match(parser, TOK_RETURN)) return parseReturnStatement(parser);
+    if (match(parser, TOK_LEFT_BRACE)) {
+        Stmt* statement = newStatement(STMT_BLOCK, previous(parser)->line);
+        parseBlockStatements(parser, &statement->body, &statement->bodyCount);
+        return statement;
     }
-    return expression_statement(p);
+    return parseExpressionStatement(parser);
 }
 
-static Stmt* declaration(Parser* p) {
-    if (match(p, TOK_FN)) return fn_declaration(p);
-    if (match(p, TOK_LET)) return let_declaration(p);
-    return statement(p);
+static Stmt* parseDeclaration(Parser* parser) {
+    if (match(parser, TOK_FN)) return parseFunctionDeclaration(parser);
+    if (match(parser, TOK_LET)) return parseLetDeclaration(parser);
+    return parseStatement(parser);
 }
 
 // ---- expressions ----
 
 // Parses a left-associative chain such as a + b - c using the next-higher precedence level.
-static Expr* left_assoc(Parser* p, Expr* (*next)(Parser*), const TokenType* ops, int nops, ExprKind kind) {
-    Expr* expr = next(p);
-    while (match_any(p, ops, nops)) {
-        const Token* op = previous(p);
-        Expr* right = next(p);
-        Expr* e = new_expr(kind, op->line);
-        e->op = op->type;
-        e->left = expr;
-        e->right = right;
-        expr = e;
+static Expr* parseLeftAssociative(Parser* parser, Expr* (*nextRule)(Parser*), const TokenType* operators, int operatorCount, ExprKind kind) {
+    Expr* expression = nextRule(parser);
+    while (matchAny(parser, operators, operatorCount)) {
+        const Token* operatorToken = previous(parser);
+        Expr* right = nextRule(parser);
+        Expr* node = newExpression(kind, operatorToken->line);
+        node->operatorType = operatorToken->type;
+        node->left = expression;
+        node->right = right;
+        expression = node;
     }
-    return expr;
+    return expression;
 }
 
-static Expr* factor(Parser* p) {
-    static const TokenType ops[] = {TOK_SLASH, TOK_STAR, TOK_PERCENT};
-    return left_assoc(p, unary, ops, 3, EXPR_BINARY);
+static Expr* parseFactor(Parser* parser) {
+    static const TokenType operators[] = {TOK_SLASH, TOK_STAR, TOK_PERCENT};
+    return parseLeftAssociative(parser, parseUnary, operators, 3, EXPR_BINARY);
 }
 
-static Expr* term(Parser* p) {
-    static const TokenType ops[] = {TOK_MINUS, TOK_PLUS};
-    return left_assoc(p, factor, ops, 2, EXPR_BINARY);
+static Expr* parseTerm(Parser* parser) {
+    static const TokenType operators[] = {TOK_MINUS, TOK_PLUS};
+    return parseLeftAssociative(parser, parseFactor, operators, 2, EXPR_BINARY);
 }
 
-static Expr* comparison(Parser* p) {
-    static const TokenType ops[] = {TOK_GREATER, TOK_GREATER_EQUAL, TOK_LESS, TOK_LESS_EQUAL};
-    return left_assoc(p, term, ops, 4, EXPR_BINARY);
+static Expr* parseComparison(Parser* parser) {
+    static const TokenType operators[] = {TOK_GREATER, TOK_GREATER_EQUAL, TOK_LESS, TOK_LESS_EQUAL};
+    return parseLeftAssociative(parser, parseTerm, operators, 4, EXPR_BINARY);
 }
 
-static Expr* equality(Parser* p) {
-    static const TokenType ops[] = {TOK_BANG_EQUAL, TOK_EQUAL_EQUAL};
-    return left_assoc(p, comparison, ops, 2, EXPR_BINARY);
+static Expr* parseEquality(Parser* parser) {
+    static const TokenType operators[] = {TOK_BANG_EQUAL, TOK_EQUAL_EQUAL};
+    return parseLeftAssociative(parser, parseComparison, operators, 2, EXPR_BINARY);
 }
 
-static Expr* logic_and(Parser* p) {
-    static const TokenType ops[] = {TOK_AND};
-    return left_assoc(p, equality, ops, 1, EXPR_LOGICAL);
+static Expr* parseLogicAnd(Parser* parser) {
+    static const TokenType operators[] = {TOK_AND};
+    return parseLeftAssociative(parser, parseEquality, operators, 1, EXPR_LOGICAL);
 }
 
-static Expr* logic_or(Parser* p) {
-    static const TokenType ops[] = {TOK_OR};
-    return left_assoc(p, logic_and, ops, 1, EXPR_LOGICAL);
+static Expr* parseLogicOr(Parser* parser) {
+    static const TokenType operators[] = {TOK_OR};
+    return parseLeftAssociative(parser, parseLogicAnd, operators, 1, EXPR_LOGICAL);
 }
 
-static Expr* primary(Parser* p) {
-    if (match(p, TOK_NUMBER)) {
-        Expr* e = new_expr(EXPR_NUMBER, previous(p)->line);
-        e->number = previous(p)->number;
-        return e;
+static Expr* parsePrimary(Parser* parser) {
+    if (match(parser, TOK_NUMBER)) {
+        Expr* node = newExpression(EXPR_NUMBER, previous(parser)->line);
+        node->number = previous(parser)->number;
+        return node;
     }
-    if (match(p, TOK_STRING)) {
-        Expr* e = new_expr(EXPR_STRING, previous(p)->line);
-        e->text = previous(p)->lexeme;
-        e->textLength = previous(p)->length;
-        return e;
+    if (match(parser, TOK_STRING)) {
+        Expr* node = newExpression(EXPR_STRING, previous(parser)->line);
+        node->text = previous(parser)->lexeme;
+        node->textLength = previous(parser)->length;
+        return node;
     }
-    if (match(p, TOK_TRUE) || match(p, TOK_FALSE)) {
-        Expr* e = new_expr(EXPR_BOOL, previous(p)->line);
-        e->boolean = previous(p)->type == TOK_TRUE;
-        return e;
+    if (match(parser, TOK_TRUE) || match(parser, TOK_FALSE)) {
+        Expr* node = newExpression(EXPR_BOOL, previous(parser)->line);
+        node->boolean = previous(parser)->type == TOK_TRUE;
+        return node;
     }
-    if (match(p, TOK_NIL)) return new_expr(EXPR_NIL, previous(p)->line);
-    if (match(p, TOK_IDENTIFIER)) {
-        Expr* e = new_expr(EXPR_VARIABLE, previous(p)->line);
-        e->text = previous(p)->lexeme;
-        e->textLength = previous(p)->length;
-        return e;
+    if (match(parser, TOK_NIL)) return newExpression(EXPR_NIL, previous(parser)->line);
+    if (match(parser, TOK_IDENTIFIER)) {
+        Expr* node = newExpression(EXPR_VARIABLE, previous(parser)->line);
+        node->text = previous(parser)->lexeme;
+        node->textLength = previous(parser)->length;
+        return node;
     }
-    if (match(p, TOK_LEFT_PAREN)) {
-        Expr* e = expression(p);
-        consume(p, TOK_RIGHT_PAREN, "Expect ')' after expression.");
-        return e;
+    if (match(parser, TOK_LEFT_PAREN)) {
+        Expr* node = parseExpression(parser);
+        consume(parser, TOK_RIGHT_PAREN, "Expect ')' after expression.");
+        return node;
     }
-    error_at(peek(p), "Expect expression.");
+    errorAt(peek(parser), "Expect expression.");
 }
 
-static Expr* call(Parser* p) {
-    Expr* expr = primary(p);
-    while (match(p, TOK_LEFT_PAREN)) {
-        Expr* c = new_expr(EXPR_CALL, previous(p)->line);
-        c->left = expr;
-        PtrVec args = {0};
-        if (!check(p, TOK_RIGHT_PAREN)) {
+static Expr* parseCall(Parser* parser) {
+    Expr* expression = parsePrimary(parser);
+    while (match(parser, TOK_LEFT_PAREN)) {
+        Expr* callNode = newExpression(EXPR_CALL, previous(parser)->line);
+        callNode->left = expression;
+        PtrVec arguments = {0};
+        if (!check(parser, TOK_RIGHT_PAREN)) {
             do {
-                if (args.count >= 255) error_at(peek(p), "Can't have more than 255 arguments.");
-                ptrvec_push(&args, expression(p));
-            } while (match(p, TOK_COMMA));
+                if (arguments.count >= 255) errorAt(peek(parser), "Can't have more than 255 arguments.");
+                pointerVectorPush(&arguments, parseExpression(parser));
+            } while (match(parser, TOK_COMMA));
         }
-        c->args = (Expr**)args.items;
-        c->argCount = args.count;
-        consume(p, TOK_RIGHT_PAREN, "Expect ')' after arguments.");
-        expr = c;
+        callNode->arguments = (Expr**)arguments.items;
+        callNode->argumentCount = arguments.count;
+        consume(parser, TOK_RIGHT_PAREN, "Expect ')' after arguments.");
+        expression = callNode;
     }
-    return expr;
+    return expression;
 }
 
-static Expr* unary(Parser* p) {
-    static const TokenType ops[] = {TOK_BANG, TOK_MINUS};
-    if (match_any(p, ops, 2)) {
-        const Token* op = previous(p);
-        Expr* e = new_expr(EXPR_UNARY, op->line);
-        e->op = op->type;
-        e->left = unary(p);
-        return e;
+static Expr* parseUnary(Parser* parser) {
+    static const TokenType operators[] = {TOK_BANG, TOK_MINUS};
+    if (matchAny(parser, operators, 2)) {
+        const Token* operatorToken = previous(parser);
+        Expr* node = newExpression(EXPR_UNARY, operatorToken->line);
+        node->operatorType = operatorToken->type;
+        node->left = parseUnary(parser);
+        return node;
     }
-    return call(p);
+    return parseCall(parser);
 }
 
-static Expr* assignment(Parser* p) {
-    Expr* expr = logic_or(p);
-    if (match(p, TOK_EQUAL)) {
-        const Token* equals = previous(p);
-        Expr* value = assignment(p);  // right-associative: a = b = 3
-        if (expr->kind == EXPR_VARIABLE) {
-            Expr* a = new_expr(EXPR_ASSIGN, equals->line);
-            a->text = expr->text;
-            a->textLength = expr->textLength;
-            a->left = value;
-            return a;
+static Expr* parseAssignment(Parser* parser) {
+    Expr* expression = parseLogicOr(parser);
+    if (match(parser, TOK_EQUAL)) {
+        const Token* equals = previous(parser);
+        Expr* value = parseAssignment(parser);  // right-associative: a = b = 3
+        if (expression->kind == EXPR_VARIABLE) {
+            Expr* assignNode = newExpression(EXPR_ASSIGN, equals->line);
+            assignNode->text = expression->text;
+            assignNode->textLength = expression->textLength;
+            assignNode->left = value;
+            return assignNode;
         }
-        lang_error_at(ERR_SYNTAX, equals->line, (long)equals->offset, "Invalid assignment target.");
+        languageErrorAt(ERR_SYNTAX, equals->line, (long)equals->offset, "Invalid assignment target.");
     }
-    return expr;
+    return expression;
 }
 
-static Expr* expression(Parser* p) { return assignment(p); }
+static Expr* parseExpression(Parser* parser) { return parseAssignment(parser); }
 
 Program* parse(const Token* tokens, int count) {
-    Parser p = {tokens, count, 0};
-    PtrVec stmts = {0};
-    while (!is_at_end(&p)) ptrvec_push(&stmts, declaration(&p));
-    Program* program = arena_alloc(sizeof(Program));
-    program->stmts = (Stmt**)stmts.items;
-    program->count = stmts.count;
+    Parser parser = {tokens, count, 0};
+    PtrVec statements = {0};
+    while (!isAtEnd(&parser)) pointerVectorPush(&statements, parseDeclaration(&parser));
+    Program* program = arenaAllocate(sizeof(Program));
+    program->statements = (Stmt**)statements.items;
+    program->count = statements.count;
     return program;
 }

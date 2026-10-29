@@ -1,5 +1,5 @@
 // A badly formatted expression is rejected before anything runs,
 // with the line number and the token where parsing stopped.
-print 1 + 2;
-print (3 + * 4;
-print "never printed";
+broadcast 1 + 2;
+broadcast (3 + * 4;
+broadcast "never printed";

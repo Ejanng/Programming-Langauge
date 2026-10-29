@@ -15,10 +15,7 @@ add_executable(mylang
   src/lexer.c
   src/parser.c
   src/value.c
-  src/interpreter.c
-  src/vm/chunk.c
-  src/vm/compiler.c
-  src/vm/vm.c)
+  src/interpreter.c)
 if(MSVC)
   # MSVC: /W3 warnings; silence its "use fopen_s instead of fopen" deprecation warnings.
   target_compile_options(mylang PRIVATE /W3)

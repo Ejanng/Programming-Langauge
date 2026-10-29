@@ -1,11 +1,11 @@
 // Recursion, loops and string building.
-fn fib(n) {
-  if (n < 2) { return n; }
-  return fib(n - 1) + fib(n - 2);
+protocol fib(n) {
+  when (n < 2) { report n; }
+  report fib(n - 1) + fib(n - 2);
 }
 
-let i = 0;
-while (i <= 10) {
-  print "fib(" + i + ") = " + fib(i);
+assign i = 0;
+repeat (i <= 10) {
+  broadcast "fib(" + i + ") = " + fib(i);
   i = i + 1;
 }
