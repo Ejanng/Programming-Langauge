@@ -30,6 +30,17 @@ How the project meets each requirement in the guidelines:
 | Proper documentation of the source code | Every source file starts with a comment saying what it does, every struct field is described, and [docs/code-guide.md](docs/code-guide.md) explains each file. |
 | Runtime: executes without errors, clear prompts | `broadcast_language --help` explains the options; the REPL shows a banner, a `broadcast_language>` prompt and a `help` command. Errors show the source line with a `^` under the problem. |
 
+## Broadcast Studio (the IDE)
+
+`ide/` holds Broadcast Studio, a desktop editor for broadcast_language written in Python with tkinter (no extra packages needed). It has syntax colors, line numbers and auto-indent. It runs programs with the real interpreter, explains errors with beginner tips you can click to jump to the line, and has a live console. It also has 11 guided lessons that check your answers.
+
+```
+python ide/broadcast_ide.py      # or double-click ide\start_studio.bat on Windows
+python ide/test_lessons.py       # checks that every lesson's solution passes
+```
+
+See [DOCUMENTATION.md, section 3](DOCUMENTATION.md#3-getting-started) for a tour.
+
 ## Build and run
 
 With GCC or Clang (Linux, macOS, or MinGW/MSYS2 on Windows):

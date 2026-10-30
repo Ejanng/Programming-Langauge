@@ -90,6 +90,7 @@ broadcast_language/
 ├── src/                the source code of the language (written in C)
 ├── examples/           sample programs (.bc) and their correct output (.expected)
 ├── tests/              the automatic test script
+├── ide/                Broadcast Studio, an editor for writing and running programs
 └── docs/               extra guides
 ```
 
@@ -148,6 +149,28 @@ Now type any line and press Enter. In interactive mode you can leave out the `;`
 | Option | What it does |
 |---|---|
 | `--help` | Lists the options. |
+
+### The easy way: Broadcast Studio
+
+Broadcast Studio is an editor made for broadcast_language. It is the friendliest way to start. It needs Python 3, which already includes everything it uses. Open it with:
+
+```
+python ide\broadcast_ide.py
+```
+
+On Windows you can also double-click `ide\start_studio.bat`. If the program from Step 1 has not been built yet, Broadcast Studio offers to build it for you.
+
+| Part | What it does |
+|---|---|
+| Editor | Colors keywords, text and numbers. Shows line numbers, indents for you after `{`, and closes `( { "` for you. |
+| Run (F5) | Runs the program with the real broadcast_language program and shows the output. The red **ON AIR** light is on while it runs. **Stop** ends a program that never stops. |
+| Output | Mistakes are shown in red with a **Tip** in plain words, such as "Did you mean 'total'?". Click a mistake to jump to its line, which is marked in red. |
+| Live Console | Interactive mode inside the editor. Variables are kept until you press **Restart**. |
+| Lessons | 11 short missions, from the first `broadcast` to recursion. Press **Check my answer**, and Broadcast Studio runs your code and tells you if it is right. Your progress is saved. |
+| Reference | Every keyword with an example. **Insert** puts the example in your code. |
+| Examples | Opens any program from the `examples` folder. |
+
+Broadcast Studio saves your lesson progress and settings in a file named `.broadcast_studio.json` in your home folder. To check that every lesson's answer is correct, run `python ide\test_lessons.py`.
 
 ---
 
